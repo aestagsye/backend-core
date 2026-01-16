@@ -1,17 +1,71 @@
 plugins {
     id 'java'
+    id 'application'
+    id 'jacoco'
 }
 
 group = 'ru.mentee.power'
 version = '1.0-SNAPSHOT'
+
+ext {
+    junitVersion = '5.10.0'
+    assertjVersion = '3.25.3'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation platform("org.junit:junit-bom:${junitVersion}")
+    testImplementation "org.junit.jupiter:junit-jupiter"
+    testImplementation "org.assertj:assertj-core:${assertjVersion}"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation("org.projectlombok:lombok:1.18.42")
+}
+// Настройка JaCoCo
+jacoco {
+    toolVersion = '0.8.14'  // актуальная версия на 2025 год с поддержкой Java 25
+}
+
+// Настройка тестов
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport  // генерировать отчёт после тестов
+}
+
+// Настройка JaCoCo отчёта
+jacocoTestReport {
+    dependsOn test  // отчёт генерируется после выполнения тестов
+    reports {
+        xml.required = false
+        csv.required = false
+        html.required = true
+        html.outputLocation = layout.buildDirectory.dir('reports/jacoco/test/html')
+    }
+}
+
+// Настройка проверки покрытия (минимум 80%)
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.80  // 80% покрытия инструкций
+            }
+        }
+    }
+}
+
+// Интеграция проверок в lifecycle
+check {
+    dependsOn jacocoTestCoverageVerification
 }
 
 test {
