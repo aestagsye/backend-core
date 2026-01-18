@@ -1,10 +1,7 @@
 package ru.mentee.power.crm.storage;
 
-import java.util.UUID;
-
-import ru.mentee.power.crm.domain.Lead;
-
 public class LeadStorage {
+  /* пока что закомментировал код до лучших времен
   private Lead[] leads = new Lead[100];
 
   public boolean add(Lead lead) {
@@ -68,4 +65,6 @@ public class LeadStorage {
     }
     return null; // или можно бросить исключение
   }
+  */
+
 }

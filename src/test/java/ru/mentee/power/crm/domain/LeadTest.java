@@ -1,90 +1,83 @@
 package ru.mentee.power.crm.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import ru.mentee.power.crm.storage.LeadStorage;
-
 class LeadTest {
+
   @Test
   void shouldCreateLead_whenValidData() {
+    Address address = new Address("San Francisco","123 Main St","94105");
+    Contact contact = new Contact("p@cop.com", "+7950", address);
+
+    Lead lead = new Lead(UUID.randomUUID(), contact, "Abstergo", "NEW");
+
+    assertThat(lead.contact()).isEqualTo(contact);
+    assertThat(lead.company()).isEqualTo("Abstergo");
+    assertThat(lead.status()).isEqualTo("NEW");
+  }
+
+  @Test
+  void shouldAccessEmailThroughDelegation_whenLeadCreated() {
+    Address address = new Address("San Francisco","123 Main St","94105");
+    Contact contact = new Contact("p@cop.com", "+7950", address);
+    Lead lead = new Lead(UUID.randomUUID(), contact, "Abstergo", "NEW");
+
+    String email = lead.contact().email();
+
+    assertThat(email).isEqualTo("p@cop.com");
+
+    String city = lead.contact().address().city();
+
+    assertThat(city).isEqualTo("San Francisco");
+  }
+
+  @Test
+  void shouldBeEqual_whenSameIdButDifferentContact() {
     UUID id = UUID.randomUUID();
-    Lead lead = new Lead(id, "test@example.com", "+71234567890", "TestCorp", "NEW");
-    assertThat(lead.id()).isEqualTo(id);
+
+    Address address1 = new Address("San Francisco","123 Main St","94105");
+    Contact contact1 = new Contact("p@cop.com", "+7950", address1);
+    Lead lead1 = new Lead(id, contact1, "Abstergo", "NEW");
+
+    Address address2 = new Address("San Bransiko","123 Local st","94103");
+    Contact contact2 = new Contact("papa@cop.com", "+7956", address2);
+    Lead lead2 = new Lead(id, contact2, "Assassins", "QUALIFIED");
+
+    assertThat(lead1).isNotEqualTo(lead2);
   }
 
   @Test
-  void shouldReturnEmail_whenGetEmailCalled() {
-    // Given
-    Lead lead = new Lead(UUID.randomUUID(), "test@example.com", "+71234567890", "TestCorp", "NEW");
-
-    // When
-    String email = lead.email();
-
-    // Then
-    assertThat(email).isEqualTo("test@example.com");
-  }// Допиши тесты для email, phone, company, status, toString
-
-  @Test
-  void shouldReturnPhone_whenGetPhoneCalled() {
-    Lead lead = new Lead(UUID.randomUUID(), "test@example.com", "+71234567890", "TestCorp", "NEW");
-    String phone = lead.phone();
-    assertThat(phone).isEqualTo("+71234567890");
-  }
-
-  @Test
-  void shouldReturnCompany_whenGetCompanyCalled() {
-    Lead lead = new Lead(UUID.randomUUID(), "test@example.com", "+71234567890", "TestCorp", "NEW");
-    String company = lead.company();
-    assertThat(company).isEqualTo("TestCorp");
-  }
-
-  @Test
-  void shouldReturnStatus_whenGetStatusCalled() {
-    Lead lead = new Lead(UUID.randomUUID(), "test@example.com", "+71234567890", "TestCorp", "NEW");
-    String status = lead.status();
-    assertThat(status).isEqualTo("NEW");
-  }
-
-  @Test
-  void shouldReturnToString_whenToStringCalled() {
+  void shouldThrowException_whenContactIsNull() {
     UUID id = UUID.randomUUID();
-    Lead lead = new Lead(id, "test@example.com", "+71234567890", "TestCorp", "NEW");
-    String toString = lead.toString();
-    assertThat(toString).isEqualTo(
-            "Lead[id=" + id + ", email=test@example.com, phone=+71234567890, " +
-                    "company=TestCorp, status=NEW]"
-    );
+    assertThatThrownBy(() -> new Lead(id, null, "Abstergo", "NEW"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Contact cannot be null or empty");
   }
 
   @Test
-  void shouldGenerateUniqueIds_whenMultipleLeads() {
-    Lead lead = new Lead(UUID.randomUUID(), "p@mail.net", "+12", "new","rich");
-    Lead lead1 = new Lead(UUID.randomUUID(), "p@mail.ru", "+21","old","mid");
-    assertThat(lead.id()).isNotEqualTo(lead1.id());
+  void shouldThrowException_whenInvalidStatus() {
+    UUID id = UUID.randomUUID();
+    Address address1 = new Address("San Francisco","123 Main St","94105");
+    Contact contact1 = new Contact("p@cop.com", "+7950", address1);
+    assertThatThrownBy(() -> new Lead(id, contact1, "Abstergo", "INVALID"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Status is invalid");
   }
 
   @Test
-  void shouldPreventStringConfusion_whenUsingUUID() {
-    UUID leadId = UUID.randomUUID();
-    Lead lead = new Lead(leadId, "test@mail.ru", "+71234567890", "Company", "NEW");
+  void shouldDemonstrateThreeLevelComposition_whenAccessingCity() {
+    UUID id = UUID.randomUUID();
+    Address address = new Address("San Francisco","123 Main St","94105");
+    Contact contact = new Contact("p@cop.com", "+7950", address);
+    Lead lead = new Lead(id, contact, "Abstergo", "NEW");
 
-    LeadStorage storage = new LeadStorage();
-    storage.add(lead);
+    String city = lead.contact().address().city();
 
-    // Это должно работать правильно:
-    Lead foundById = storage.findById(lead.id());  // OK: UUID to UUID
-    assertThat(foundById).isEqualTo(lead);
-
-    // Это не скомпилируется (демонстрация):
-    // findById("some-string");  // ERROR: incompatible types
-
-    // Но для теста мы можем проверить это через рефлексию или просто убедиться,
-    // что компилятор действительно не позволит это сделать
-    assertThat(lead.id()).isInstanceOf(UUID.class);
-    assertThat(lead.id().toString()).isNotEqualTo("some-string");
+    assertThat(city).isEqualTo("San Francisco");
   }
 }
