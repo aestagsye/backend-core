@@ -1,5 +1,7 @@
 package ru.mentee.power.crm.storage;
 
+import java.util.UUID;
+
 import ru.mentee.power.crm.domain.Lead;
 
 public class LeadStorage {
@@ -7,7 +9,7 @@ public class LeadStorage {
 
   public boolean add(Lead lead) {
     for (int index = 0; index < leads.length; index++) {
-      if (leads[index] != null && leads[index].getEmail().equals(lead.getEmail())) {
+      if (leads[index] != null && leads[index].email().equals(lead.email())) {
         return false;
       }
     }
@@ -56,5 +58,14 @@ public class LeadStorage {
       }
     }
     return count;
+  }
+
+  public Lead findById(UUID id) {
+    for (Lead lead : leads) {
+      if (lead != null && lead.id().equals(id)) {
+        return lead;
+      }
+    }
+    return null; // или можно бросить исключение
   }
 }
