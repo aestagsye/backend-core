@@ -38,13 +38,6 @@ public class Lead {
   }
 
   @Override
-  public String toString() {
-    return "Lead{id='" + id + "', email='" + email +
-            "', phone='" + phone + "', company='" + company +
-            "', status='" + status + "'}";
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this==o) return true;
     if (o == null || getClass() != o.getClass()) return false;
@@ -55,5 +48,12 @@ public class Lead {
   @Override
   public int hashCode() {
     return Objects.hash(id);
+  }
+
+  @Override
+  public String toString() {
+    return "Lead{id='" + id + "', email='" + email +
+            "', phone='" + phone + "', company='" + company +
+            "', status='" + status + "'}";
   }
 }
