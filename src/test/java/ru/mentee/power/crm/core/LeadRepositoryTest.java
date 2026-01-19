@@ -27,10 +27,10 @@ class LeadRepositoryTest {
 
     Address address = new Address("Moscow", "Tverskaya", "123456");
     contact1 = new Contact("ivan@mail.ru", "79991234567", address);
-    Contact contact2 = new Contact("anna@gmail.com", "79997654321", address);
 
     lead1 = new Lead(UUID.randomUUID(), contact1, "Company A", "NEW");
-    lead2 = new Lead(UUID.randomUUID(), contact2, "Company B", "QUALIFIED");
+    lead2 = new Lead(UUID.randomUUID(), new Contact("anna@gmail.com", "79997654321",
+            new Address("Mos", "Lenina", "223228")), "Company B", "QUALIFIED");
   }
 
   @Test
@@ -106,5 +106,25 @@ class LeadRepositoryTest {
     // Then:
     double ratio = (double) listDuration/hashSetDuration;
     assertThat(ratio).isGreaterThanOrEqualTo(100.0);
+  }
+
+  @Test
+  void shouldSaveBothLeads_evenWithSameEmailAndPhone_becauseRepositoryDoesNotCheckBusinessRules() {
+    // Given: два лида с разными UUID но одинаковыми контактами
+    Contact sharedContact = new Contact("ivan@mail.ru", "+79001234567",
+            new Address("Moscow", "Tverskaya 1", "101000"));
+    Lead originalLead = new Lead(UUID.randomUUID(), sharedContact, "Acme Corp", "NEW");
+    Lead duplicateLead = new Lead(UUID.randomUUID(), sharedContact, "TechCorp", "NEW");
+
+    // When: сохраняем оба
+    repository.add(originalLead);
+    repository.add(duplicateLead);
+
+    // Then: Repository сохранил оба (это технически правильно!)
+    assertThat(repository.size()).isEqualTo(2);
+
+    // But: Бизнес недоволен — в CRM два контакта на одного человека
+    // Решение: Service Layer в Sprint 5 будет проверять бизнес-правила
+    // перед вызовом repository.save()
   }
 }
