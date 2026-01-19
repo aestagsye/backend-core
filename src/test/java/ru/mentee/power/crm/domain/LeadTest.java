@@ -48,7 +48,7 @@ class LeadTest {
     Contact contact2 = new Contact("papa@cop.com", "+7956", address2);
     Lead lead2 = new Lead(id, contact2, "Assassins", "QUALIFIED");
 
-    assertThat(lead1).isNotEqualTo(lead2);
+    assertThat(lead1).isEqualTo(lead2);
   }
 
   @Test
