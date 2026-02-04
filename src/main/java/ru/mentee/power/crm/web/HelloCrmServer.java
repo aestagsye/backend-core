@@ -29,11 +29,6 @@ public class HelloCrmServer {
   static class HelloHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-      // 1. Сформировать HTML строку с "Hello CRM!"
-      // 2. Установить заголовок Content-Type: text/html; charset=UTF-8
-      // 3. Отправить статус 200 и длину ответа
-      // 4. Записать HTML в OutputStream
-      // 5. Закрыть exchange
       String method = exchange.getRequestMethod();
       String path = exchange.getRequestURI().getPath();
       System.out.println("Received " + method + " request for " + path);
