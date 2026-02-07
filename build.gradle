@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'jacoco'
+    id 'gg.jte.gradle' version '3.1.15'
 }
 
 group = 'ru.mentee.power'
@@ -12,6 +13,7 @@ ext {
     assertjVersion = '3.25.3'
     servletVersion = '6.1.0'
     tomcatVersion = '11.0.1'
+    jteVersion = '3.1.15'
 }
 
 java {
@@ -33,7 +35,19 @@ dependencies {
     testImplementation 'org.mockito:mockito-junit-jupiter:5.21.0'
     implementation "jakarta.servlet:jakarta.servlet-api:${servletVersion}"
     implementation "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}"
+    implementation "gg.jte:jte:${jteVersion}"
+    implementation "gg.jte:jte-runtime:${jteVersion}"
 }
+
+jte {
+    sourceDirectory = file("src/main/jte").toPath()
+
+    contentType = gg.jte.ContentType.Html
+    binaryStaticContent = false
+
+    generate()
+}
+
 // Настройка JaCoCo
 jacoco {
     toolVersion = '0.8.14'  // актуальная версия на 2025 год с поддержкой Java 25
@@ -54,6 +68,16 @@ jacocoTestReport {
         html.required = true
         html.outputLocation = layout.buildDirectory.dir('reports/jacoco/test/html')
     }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    '**/*Jte*Generated*.class',
+                    '**/*_jte*',
+                    '**/jte/**',
+                    'gg/jte/generated/**'
+            ])
+        }))
+    }
 }
 
 // Настройка проверки покрытия (минимум 80%)
@@ -65,6 +89,16 @@ jacocoTestCoverageVerification {
                 minimum = 0.80  // 80% покрытия инструкций
             }
         }
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    '**/*Jte*Generated*.class',
+                    '**/*_jte*',
+                    '**/jte/**',
+                    'gg/jte/generated/**'
+            ])
+        }))
     }
 }
 
