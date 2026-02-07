@@ -68,6 +68,16 @@ jacocoTestReport {
         html.required = true
         html.outputLocation = layout.buildDirectory.dir('reports/jacoco/test/html')
     }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    '**/*Jte*Generated*.class',
+                    '**/*_jte*',
+                    '**/jte/**',
+                    'gg/jte/generated/**'
+            ])
+        }))
+    }
 }
 
 // Настройка проверки покрытия (минимум 80%)
@@ -79,6 +89,16 @@ jacocoTestCoverageVerification {
                 minimum = 0.80  // 80% покрытия инструкций
             }
         }
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    '**/*Jte*Generated*.class',
+                    '**/*_jte*',
+                    '**/jte/**',
+                    'gg/jte/generated/**'
+            ])
+        }))
     }
 }
 
