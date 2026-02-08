@@ -47,20 +47,16 @@ class LeadListServletTest {
   void setUp() throws Exception {
     servlet = new LeadListServlet();
 
-    // Настройка моков для ServletContext
     when(servletConfig.getServletContext()).thenReturn(servletContext);
 
-    // Инициализируем сервлет - он создаст TemplateEngine внутри
     servlet.init(servletConfig);
 
-    // Подготавливаем writer для response (но не мокаем пока)
     responseWriter = new StringWriter();
     printWriter = new PrintWriter(responseWriter);
   }
 
   @Test
   void testDoGetRendersLeadsCorrectly() throws Exception {
-    // Arrange
     List<Lead> mockLeads = List.of(
             new Lead(UUID.randomUUID(), "lead1@test.com", "Company1", LeadStatus.NEW),
             new Lead(UUID.randomUUID(), "lead2@test.com", "Company2", LeadStatus.CONTACTED)
@@ -70,12 +66,10 @@ class LeadListServletTest {
     when(leadService.findAll()).thenReturn(mockLeads);
     when(response.getWriter()).thenReturn(printWriter);
 
-    // Act
     servlet.doGet(request, response);
     printWriter.flush();
     String result = responseWriter.toString();
 
-    // Assert
     verify(response).setContentType("text/html; charset=UTF-8");
     assertThat(result)
             .contains("lead1@test.com")
@@ -88,19 +82,16 @@ class LeadListServletTest {
 
   @Test
   void testDoGetWithEmptyLeadsList() throws Exception {
-    // Arrange
     List<Lead> emptyLeads = List.of();
 
     when(servletContext.getAttribute("leadService")).thenReturn(leadService);
     when(leadService.findAll()).thenReturn(emptyLeads);
     when(response.getWriter()).thenReturn(printWriter);
 
-    // Act
     servlet.doGet(request, response);
     printWriter.flush();
     String result = responseWriter.toString();
 
-    // Assert
     assertThat(result)
             .contains("Lead List")
             .contains("<table") // Таблица должна присутствовать
@@ -109,15 +100,12 @@ class LeadListServletTest {
 
   @Test
   void testDoGetSetsCorrectContentType() throws Exception {
-    // Arrange
     when(servletContext.getAttribute("leadService")).thenReturn(leadService);
     when(leadService.findAll()).thenReturn(List.of());
     when(response.getWriter()).thenReturn(printWriter);
 
-    // Act
     servlet.doGet(request, response);
 
-    // Assert
     verify(response).setContentType("text/html; charset=UTF-8");
   }
 

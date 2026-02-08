@@ -3,6 +3,7 @@ plugins {
     id 'application'
     id 'jacoco'
     id 'gg.jte.gradle' version '3.1.15'
+    id 'org.springframework.boot' version "4.0.0"
 }
 
 group = 'ru.mentee.power'
@@ -14,6 +15,7 @@ ext {
     servletVersion = '6.1.0'
     tomcatVersion = '11.0.1'
     jteVersion = '3.1.15'
+    springBootVersion = '4.0.0'
 }
 
 java {
@@ -37,6 +39,10 @@ dependencies {
     implementation "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}"
     implementation "gg.jte:jte:${jteVersion}"
     implementation "gg.jte:jte-runtime:${jteVersion}"
+    // Sprint 5: Spring Boot Stack (BCORE-14)
+    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter'
 }
 
 jte {
@@ -113,4 +119,8 @@ test {
 
 application {
     mainClass = 'ru.mentee.power.crm.Main'
+}
+
+bootRun {
+    mainClass = 'ru.mentee.power.crm.spring.Application'
 }
