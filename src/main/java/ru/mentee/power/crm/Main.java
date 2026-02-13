@@ -2,7 +2,6 @@ package ru.mentee.power.crm;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
-import ru.mentee.power.crm.model.LeadStatus;
 import ru.mentee.power.crm.repository.InMemoryLeadRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
 import ru.mentee.power.crm.service.LeadService;
@@ -15,9 +14,6 @@ public class Main {
 
     LeadRepository repository = new InMemoryLeadRepository();
     LeadService leadService = new LeadService(repository);
-    for (int i = 0; i < 5; i++) {
-      leadService.addLead("aestagsye" + i + "@a.com", "" + i + " Mistakes", LeadStatus.NEW);
-    }
 
     Tomcat tomcat = new Tomcat();
     tomcat.setPort(8080);
