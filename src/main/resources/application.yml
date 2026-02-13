@@ -4,3 +4,18 @@ server:
 spring:
   application:
     name: mentee-power-crm
+  web:
+    resources:
+      static-locations: classpath:/static/
+
+gg:
+  jte:
+    developmentMode: true
+    contentType: Html
+    templateLocation: src/main/jte # Важно: без classpath, прямой путь
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    ru.mentee.power.crm: DEBUG
+    gg.jte: DEBUG

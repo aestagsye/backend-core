@@ -7,8 +7,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.stereotype.Repository;
 import ru.mentee.power.crm.model.Lead;
 
+@Repository
 public class InMemoryLeadRepository implements LeadRepository {
   private final Map<UUID, Lead> storage = new HashMap<>();
   private final Map<String, UUID> emailIndex = new HashMap<>();
