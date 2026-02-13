@@ -41,6 +41,8 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.mockito:mockito-core:5.21.0' // Замените на последнюю версию
     testImplementation 'org.mockito:mockito-junit-jupiter:5.21.0'
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+    testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test:${springBootVersion}"
     // Tomcat
     implementation "jakarta.servlet:jakarta.servlet-api:${servletVersion}"
     implementation "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}"
