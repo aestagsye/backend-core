@@ -1,6 +1,5 @@
 package ru.mentee.power.crm;
 
-import jakarta.servlet.ServletContext;
 import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
 import ru.mentee.power.crm.model.LeadStatus;
