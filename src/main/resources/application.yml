@@ -12,7 +12,7 @@ gg:
   jte:
     developmentMode: true
     contentType: Html
-    templateLocation: src/main/jte # Важно: без classpath, прямой путь
+    templateLocation: src/main/jte
 
 logging:
   level:
