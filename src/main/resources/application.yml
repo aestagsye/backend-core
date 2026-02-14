@@ -12,7 +12,7 @@ gg:
   jte:
     developmentMode: true
     contentType: Html
-    templateLocation: src/main/jte
+    templateLocation: src/main/resources/jte
 
 logging:
   level:

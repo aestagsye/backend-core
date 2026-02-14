@@ -16,11 +16,10 @@ import ru.mentee.power.crm.repository.LeadRepository;
 class LeadServiceTest {
 
   private LeadService service;
-  private LeadRepository repository;
 
   @BeforeEach
   void setUp() {
-    repository = new InMemoryLeadRepository();
+    LeadRepository repository = new InMemoryLeadRepository();
     service = new LeadService(repository);
   }
 
@@ -100,6 +99,50 @@ class LeadServiceTest {
     // Given/When
     Optional<Lead> result = service.findByEmail("nonexistent@example.com");
 
+    // Then
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  void shouldReturnOnlyExactLeads_whenFindByExactStatus() {
+    // Given
+    for (int i = 0; i < 10; i++) {
+      if (i<3) {
+        service.addLead("new"+i+"@n.com","EvilCorp"+i, LeadStatus.NEW);
+      } else if (i<8) {
+        service.addLead("contacted"+i+"@c.com", "NeutralCorp"+i, LeadStatus.CONTACTED);
+      } else {
+        service.addLead("qualified"+i+"@q.com","AngelCorp"+i,LeadStatus.QUALIFIED);
+      }
+    }
+    // When
+    List<Lead> result = service.findByStatus(LeadStatus.NEW);
+    List<Lead> result1 = service.findByStatus(LeadStatus.CONTACTED);
+    List<Lead> result2 = service.findByStatus(LeadStatus.QUALIFIED);
+    // Then
+    assertThat(result)
+            .hasSize(3)
+            .allMatch(lead -> lead.status().equals(LeadStatus.NEW));
+    assertThat(result1)
+            .hasSize(5)
+            .allMatch(lead -> lead.status().equals(LeadStatus.CONTACTED));
+    assertThat(result2)
+            .hasSize(2)
+            .allMatch(lead -> lead.status().equals(LeadStatus.QUALIFIED));
+  }
+
+  @Test
+  void shouldReturnEmptyList_whenNoLeadsWithStatus() {
+    // Given
+    for (int i = 0; i < 8; i++) {
+      if (i<3) {
+        service.addLead("new"+i+"@n.com","EvilCorp"+i, LeadStatus.NEW);
+      } else {
+        service.addLead("contacted"+i+"@c.com", "NeutralCorp"+i, LeadStatus.CONTACTED);
+      }
+    }
+    // When
+    List<Lead> result = service.findByStatus(LeadStatus.QUALIFIED);
     // Then
     assertThat(result).isEmpty();
   }
