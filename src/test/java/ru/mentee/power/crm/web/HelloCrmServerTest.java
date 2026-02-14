@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class HelloCrmServerTest {
 
   private HelloCrmServer server;
-  private int port = 8081;
+  private int port = 8083;
 
   @BeforeEach
   void setUp() throws IOException {
