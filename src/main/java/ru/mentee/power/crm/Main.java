@@ -11,7 +11,6 @@ import java.io.File;
 
 public class Main {
   public static void main(String[] args) throws Exception {
-
     LeadRepository repository = new InMemoryLeadRepository();
     LeadService leadService = new LeadService(repository);
 
@@ -22,7 +21,7 @@ public class Main {
     Context context = tomcat.addContext("", new File(".").getAbsolutePath());
     context.getServletContext().setAttribute("leadService", leadService);
 
-    tomcat.addServlet(context, "LeadListServlet", new LeadListServlet());
+    Tomcat.addServlet(context, "LeadListServlet", new LeadListServlet());
     context.addServletMappingDecoded("/leads", "LeadListServlet");
     tomcat.start();
 
@@ -30,7 +29,5 @@ public class Main {
     System.out.println("Open http://localhost:8080/leads in browser");
 
     tomcat.getServer().await();
-
-
   }
 }
