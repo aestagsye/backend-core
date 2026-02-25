@@ -20,7 +20,7 @@ public class InMemoryLeadRepository implements Repository<Lead> {
       throw new IllegalArgumentException("Lead cannot be null");
     }
 
-    if (!storage.contains(entity)){
+    if (!storage.contains(entity)) {
       storage.add(entity);
     }
   }

@@ -15,19 +15,18 @@ import ru.mentee.power.crm.repository.LeadRepository;
 @Service
 public class LeadService {
 
-  private static final Logger log = LoggerFactory.getLogger(LeadService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LeadService.class);
   private final LeadRepository repository;
 
   public LeadService(LeadRepository repository) {
     this.repository = repository;
-    log.info("LeadService constructor called");
+    LOGGER.info("LeadService constructor called");
   }
 
   @PostConstruct
   void init() {
-    log.info("LeadService @PostConstruct init() called - Bean lifecycle phase");
+    LOGGER.info("LeadService @PostConstruct init() called - Bean lifecycle phase");
   }
-
 
   public Lead addLead(String email, String company, LeadStatus status) {
     // Бизнес-правило: проверка уникальности email

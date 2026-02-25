@@ -1,13 +1,13 @@
 package ru.mentee.power.crm;
 
+import java.io.File;
+
 import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
 import ru.mentee.power.crm.repository.InMemoryLeadRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
 import ru.mentee.power.crm.service.LeadService;
 import ru.mentee.power.crm.servlet.LeadListServlet;
-
-import java.io.File;
 
 public class Main {
   public static void main(String[] args) throws Exception {
@@ -21,7 +21,7 @@ public class Main {
     Context context = tomcat.addContext("", new File(".").getAbsolutePath());
     context.getServletContext().setAttribute("leadService", leadService);
 
-    Tomcat.addServlet(context, "LeadListServlet", new LeadListServlet());
+    tomcat.addServlet(context, "LeadListServlet", new LeadListServlet());
     context.addServletMappingDecoded("/leads", "LeadListServlet");
     tomcat.start();
 

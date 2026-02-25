@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'application'
+    id 'checkstyle'
     id 'jacoco'
     id 'gg.jte.gradle' version '3.2.1'
     id 'org.springframework.boot' version "4.0.2"
@@ -68,6 +69,20 @@ jte {
     binaryStaticContent = false
 
     generate()
+}
+
+checkstyle {
+    toolVersion = '10.12.4'  // актуальная версия на 2025 год для Gradle 9.1
+    maxErrors = 0      // даже 1 ошибка (severity=error) → BUILD FAILED
+    maxWarnings = 999  // предупреждения (severity=warning) не блокируют сборку
+    configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
+}
+
+tasks.withType(Checkstyle) {
+    exclude '**/jte/**'
+    exclude '**/*Jte*Generated*.java'
+    exclude '**/*_jte*.java'
+    exclude '**/gg/jte/generated/**'
 }
 
 // Настройка JaCoCo

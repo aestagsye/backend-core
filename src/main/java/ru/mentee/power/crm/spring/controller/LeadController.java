@@ -20,8 +20,8 @@ public class LeadController {
 
   @GetMapping("/leads")
   public String showLeads(
-    @RequestParam(required = false) LeadStatus status,
-    Model model
+      @RequestParam(required = false) LeadStatus status,
+      Model model
   ) {
     List<Lead> leads;
     if (status == null) {

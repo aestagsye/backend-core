@@ -13,7 +13,7 @@ public record Lead(UUID id, Contact contact, String company, String status) {
       throw new IllegalArgumentException("Contact cannot be null or empty");
     }
 
-    if (status == null || status.isBlank()){
+    if (status == null || status.isBlank()) {
       throw new IllegalArgumentException("Status cannot be null or empty");
     }
 
@@ -24,8 +24,12 @@ public record Lead(UUID id, Contact contact, String company, String status) {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (!(obj instanceof Lead other)) return false;
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof Lead other)) {
+      return false;
+    }
     return Objects.equals(id, other.id);
   }
 
