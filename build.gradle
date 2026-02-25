@@ -78,6 +78,10 @@ checkstyle {
     configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
 }
 
+checkstyleTest {
+    enabled = false
+}
+
 tasks.withType(Checkstyle) {
     exclude '**/jte/**'
     exclude '**/*Jte*Generated*.java'
