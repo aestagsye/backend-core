@@ -27,6 +27,29 @@ jobs:
           java-version: '25'
           cache: 'gradle'
 
+      - name: Build the project
+        run: ./gradlew --no-daemon build -x test
+
+      # Запускаем Servlet приложение в фоне
+      - name: Start Servlet application
+        run: |
+          ./gradlew --no-daemon run &
+          echo "SERVLET_PID=$!"
+          sleep 10  # Даем время на запуск
+
+      # Запускаем Spring Boot приложение в фоне
+      - name: Start Spring Boot application
+        run: |
+          ./gradlew --no-daemon bootRun &
+          echo "SPRING_PID=$!"
+          sleep 15  # Spring Boot обычно стартует дольше
+
+      # Проверяем что серверы запустились
+      - name: Wait for servers to be ready
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:8080/leads; do sleep 2; done'
+          timeout 60 bash -c 'until curl -f http://localhost:8081/leads; do sleep 2; done'
+
       - name: Run Checkstyle
         run: ./gradlew --no-daemon checkstyleMain
 
@@ -39,5 +62,9 @@ jobs:
       - name: Verify code coverage
         run: ./gradlew --no-daemon jacocoTestCoverageVerification
 
-      - name: Build project
-        run: ./gradlew --no-daemon build
+      # Останавливаем серверы после тестов
+      - name: Stop servers
+        if: always()
+        run: |
+          kill $SERVLET_PID || true
+          kill $SPRING_PID || true
