@@ -1,4 +1,4 @@
-[![Java CI with Checkstyle and JaCoCo](https://github.com/aestagsye/backend-core/actions/workflows/main.yml/badge.svg)](https://github.com/aestagsye/backend-core/actions/workflows/main.yml)
+[![Java CI with Checkstyle and JaCoCo](https://github.com/aestagsye/backend-core/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/aestagsye/backend-core/actions/workflows/main.yml)
 
 # Сравнение стеков Servlet vs Spring Boot
 ## Результаты интеграционного теста
