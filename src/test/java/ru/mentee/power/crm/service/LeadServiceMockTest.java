@@ -33,27 +33,27 @@ class LeadServiceMockTest {
 
   @Test
   void shouldCallRepositorySave_whenAddingNewLead() {
-    // Given: Repository возвращает пустой Optional (email уникален)
+    // Given:
     when(mockRepository.findByEmail(anyString()))
             .thenReturn(Optional.empty());
 
-    // When: настраиваем save чтобы возвращал переданный Lead
+    // When:
     when(mockRepository.save(any(Lead.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
 
-    // When: вызываем бизнес-метод
+    // When:
     Lead result = service.addLead("new@example.com", "Company", LeadStatus.NEW);
 
-    // Then: проверяем что Repository.save() был вызван ровно 1 раз
+    // Then:
     verify(mockRepository, times(1)).save(any(Lead.class));
 
-    // Then: проверяем результат
+    // Then:
     assertThat(result.email()).isEqualTo("new@example.com");
   }
 
   @Test
   void shouldNotCallSave_whenEmailExists() {
-    // Given: Repository возвращает существующий Lead
+    // Given:
     Lead existingLead = new Lead(
             UUID.randomUUID(),
             "existing@example.com",
@@ -63,12 +63,12 @@ class LeadServiceMockTest {
     when(mockRepository.findByEmail("existing@example.com"))
             .thenReturn(Optional.of(existingLead));
 
-    // When/Then: ожидаем исключение
+    // When/Then:
     assertThatThrownBy(() ->
             service.addLead("existing@example.com", "New Company", LeadStatus.NEW)
     ).isInstanceOf(IllegalStateException.class);
 
-    // Then: save() НЕ должен быть вызван
+    // Then:
     verify(mockRepository, never()).save(any(Lead.class));
   }
 
@@ -83,7 +83,7 @@ class LeadServiceMockTest {
     // When
     service.addLead("test@example.com", "Company", LeadStatus.NEW);
 
-    // Then: проверяем порядок вызовов
+    // Then:
     var inOrder = inOrder(mockRepository);
     inOrder.verify(mockRepository).findByEmail("test@example.com");
     inOrder.verify(mockRepository).save(any(Lead.class));

@@ -9,23 +9,15 @@ import ru.mentee.power.crm.service.LeadService;
 
 @Controller
 public class DemoController {
-
-  // Constructor Injection (recommended) — final field
   private final LeadService constructorService;
-
-  // Field Injection (not recommended) — cannot be final
   @Autowired
   private LeadRepository fieldRepository;
-
-  // Setter Injection (for optional deps) — cannot be final
   private LeadService setterService;
 
-  // Constructor для Constructor Injection
   public DemoController(LeadService constructorService) {
     this.constructorService = constructorService;
   }
 
-  // Setter для Setter Injection
   @Autowired(required = false)
   public void setSetterService(LeadService setterService) {
     this.setterService = setterService;

@@ -8,15 +8,15 @@ class LeadControllerUnitTest {
 
   @Test
   void shouldCreateControllerWithoutSpring() {
-    // Given: mock service без Spring контейнера
+    // Given:
     MockLeadService mockService = new MockLeadService();
 
-    // When: создаём контроллер через конструктор (pure Java)
+    // When:
     LeadController controller = new LeadController(mockService);
 
-    // Then: контроллер работает, использует mock service
+    // Then:
     String response = controller.home();
-    assertThat(response).contains("2 leads"); // MockLeadService возвращает 2 лида
+    assertThat(response).contains("2 leads");
   }
 
   @Test
@@ -25,10 +25,10 @@ class LeadControllerUnitTest {
     MockLeadService mockService = new MockLeadService();
     LeadController controller = new LeadController(mockService);
 
-    // When: вызываем метод контроллера
+    // When:
     String response = controller.home();
 
-    // Then: сервис использован (не null)
+    // Then:
     assertThat(response).isNotNull()
             .contains("Spring Boot CRM is running");
   }

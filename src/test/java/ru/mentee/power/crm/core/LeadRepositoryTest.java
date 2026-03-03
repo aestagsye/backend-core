@@ -36,7 +36,7 @@ class LeadRepositoryTest {
   @Test
   @DisplayName("Should automatically deduplicate leads by id")
   void shouldDeduplicateLeadsById() {
-    // Given: done in setUp()
+    // Given:
     // When:
     repository.add(lead1);
     boolean result = repository.add(lead1);
@@ -48,7 +48,7 @@ class LeadRepositoryTest {
   @Test
   @DisplayName("Should allow different leads with different ids")
   void shouldAllowDifferentLeads() {
-    // Given: done in setUp()
+    // Given:
     // When:
     boolean result1 = repository.add(lead1);
     boolean result2 = repository.add(lead2);

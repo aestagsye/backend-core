@@ -8,6 +8,4 @@ public record Lead(
         String company,
         LeadStatus status
 ) {
-  // Record автоматически генерирует equals/hashCode по всем полям
-  // HashMap сможет использовать id как ключ
 }

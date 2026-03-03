@@ -29,13 +29,11 @@ public class LeadService {
   }
 
   public Lead addLead(String email, String company, LeadStatus status) {
-    // Бизнес-правило: проверка уникальности email
     Optional<Lead> existing = repository.findByEmail(email);
     if (existing.isPresent()) {
       throw new IllegalStateException("Lead with email already exists: " + email);
     }
 
-    // Создаём нового лида
     Lead lead = new Lead(
             UUID.randomUUID(),
             email,
@@ -43,7 +41,6 @@ public class LeadService {
             status
     );
 
-    // Сохраняем через repository
     return repository.save(lead);
   }
 

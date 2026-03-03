@@ -28,7 +28,6 @@ class LeadServiceBeanTest {
   @Test
   void shouldInjectLeadRepositoryIntoService() {
     LeadService service = context.getBean(LeadService.class);
-    // Проверяем что DI работает: service использует repository
     assertThat(service.findAll()).isEmpty();
   }
 }

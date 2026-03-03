@@ -28,7 +28,6 @@ class AddressTest {
 
   @Test
   void shouldThrowException_whenCityIsNull() {
-    // Проверяем что создание Address с city=null бросает IllegalArgumentException
     assertThatThrownBy(() -> new Address(null, "123 Main St", "94105"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("City cannot be null or empty");

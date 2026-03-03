@@ -69,13 +69,10 @@ class StackComparisonTest {
   @Test
   @DisplayName("Измерение времени старта обоих стеков")
   void shouldMeasureStartupTime() throws LifecycleException {
-    // Servlet startup time (уже запущен вручную)
     long servletStartupMs = measureServletStartup();
 
-    // Spring Boot startup time (уже запущен вручную)
     long springStartupMs = measureSpringBootStartup();
 
-    // Вывод результатов
     System.out.println("=== Сравнение времени старта ===");
     System.out.printf("Servlet стек: %d ms%n", servletStartupMs);
     System.out.printf("Spring Boot: %d ms%n", springStartupMs);
@@ -83,7 +80,6 @@ class StackComparisonTest {
             springStartupMs > servletStartupMs ? "медленнее" : "быстрее",
             Math.abs(springStartupMs - servletStartupMs));
 
-    // Просто фиксируем что оба стартуют за разумное время
     assertThat(servletStartupMs).isLessThan(10_000);
     assertThat(springStartupMs).isLessThan(15_000);
   }
@@ -103,7 +99,6 @@ class StackComparisonTest {
   private long measureSpringBootStartup() {
     long start = System.nanoTime();
 
-    // Запускаем Spring Boot на тестовом порту 8082
     ConfigurableApplicationContext context = SpringApplication.run(
             ru.mentee.power.crm.spring.Application.class,
             "--server.port=" + TEST_PORT,
@@ -117,7 +112,6 @@ class StackComparisonTest {
   }
 
   private int countTableRows(String html) {
-    // сам сделал:)
     String[] splittedHtmlDocument = html.split("<tr");
     return splittedHtmlDocument.length - 1;
   }
