@@ -27,12 +27,8 @@
         </div>
 
         <div class="mb-4 flex justify-between items-center">
-            <!-- Существующие фильтры: Все, NEW, CONTACTED, QUALIFIED -->
-
-            <a
-                    href="/leads/new"
-                    class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-            >
+            <a href="/leads/new"
+               class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
                 + Добавить лида
             </a>
         </div>
@@ -47,6 +43,7 @@
                 <th class="px-4 py-2 text-left">Email</th>
                 <th class="px-4 py-2 text-left">Company</th>
                 <th class="px-4 py-2 text-left">Status</th>
+                <th class="px-4 py-2 text-left">Действия</th>
             </tr>
             </thead>
             <tbody>
@@ -56,18 +53,25 @@
                         <td class="px-4 py-2">${lead.email()}</td>
                         <td class="px-4 py-2">${lead.company()}</td>
                         <td class="px-4 py-2">
-                                <span class="px-2 py-1 rounded text-sm
-                                    ${lead.status() == LeadStatus.NEW ? "bg-green-100 text-green-800" :
-                                      lead.status() == LeadStatus.CONTACTED ? "bg-yellow-100 text-yellow-800" :
-                                      "bg-purple-100 text-purple-800"}">
-                                    ${lead.status()}
-                                </span>
+                            @if(lead.status() == LeadStatus.NEW)
+                                <span class="px-2 py-1 rounded text-sm bg-green-100 text-green-800">${lead.status()}</span>
+                            @elseif(lead.status() == LeadStatus.CONTACTED)
+                                <span class="px-2 py-1 rounded text-sm bg-yellow-100 text-yellow-800">${lead.status()}</span>
+                            @else
+                                <span class="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">${lead.status()}</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-2">
+                            <a href="/leads/${lead.id().toString()}/edit"
+                               class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+                                Редактировать
+                            </a>
                         </td>
                     </tr>
                 @endfor
             @else
                 <tr>
-                    <td colspan="3" class="px-4 py-2 text-center text-gray-500">
+                    <td colspan="4" class="px-4 py-2 text-center text-gray-500">
                         Нет лидов для отображения
                     </td>
                 </tr>
