@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -28,4 +29,16 @@ class LeadControllerTest {
             .andExpect(model().attributeExists("leads"))
             .andExpect(content().string(org.hamcrest.Matchers.containsString("Email")));
   }
+
+  @Test
+  void shouldReturnLeadsNewPageSuccessfully() throws Exception {
+    // Given
+    // When
+    mockMvc.perform(get("/leads/new"))
+            // Then
+            .andExpect(status().isOk())
+            .andExpect(content().contentType("text/html;charset=UTF-8"))
+            .andExpect(view().name("leads/create"));
+  }
+
 }
