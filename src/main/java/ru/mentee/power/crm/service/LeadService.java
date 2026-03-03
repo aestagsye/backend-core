@@ -61,4 +61,13 @@ public class LeadService {
   public Optional<Lead> findByEmail(String email) {
     return repository.findByEmail(email);
   }
+
+  public Lead update(UUID id, Lead updatedLead) {
+    if (repository.findById(id).isEmpty()) {
+      throw new IllegalStateException("There is no Lead with such id");
+    }
+
+    repository.save(updatedLead);
+    return updatedLead;
+  }
 }
