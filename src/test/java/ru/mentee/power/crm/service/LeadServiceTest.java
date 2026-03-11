@@ -1,10 +1,8 @@
 package ru.mentee.power.crm.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +10,9 @@ import ru.mentee.power.crm.model.Lead;
 import ru.mentee.power.crm.model.LeadStatus;
 import ru.mentee.power.crm.repository.InMemoryLeadRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class LeadServiceTest {
 
@@ -145,5 +146,44 @@ class LeadServiceTest {
     List<Lead> result = service.findByStatus(LeadStatus.QUALIFIED);
     // Then
     assertThat(result).isEmpty();
+  }
+
+  @Test
+  void shouldUpdateLead() {
+    service.addLead("dorzh@mail.ru","AcmeCorp",LeadStatus.NEW);
+    UUID uuid = null;
+    if (service.findByEmail("dorzh@mail.ru").isPresent()) {
+      uuid = service.findByEmail("dorzh@mail.ru").get().id();
+    }
+    Lead updatedLead = new Lead(uuid, "bebra@b.com","EvilCorp", LeadStatus.QUALIFIED);
+    service.update(uuid, updatedLead);
+    assertThat(service.findByEmail("bebra@b.com")).contains(updatedLead);
+  }
+
+  @Test
+  void shouldThrowException_whenUpdateAlreadyExistingEmail() {
+    service.addLead("dorzh@mail.ru","AcmeCorp",LeadStatus.NEW);
+    UUID uuid = null;
+    if (service.findByEmail("dorzh@mail.ru").isPresent()) {
+      uuid = service.findByEmail("dorzh@mail.ru").get().id();
+    }
+    UUID uuid1 = uuid;
+    Lead updatedLead = new Lead(uuid1,"dorzh@mail.ru","EvilCorp",LeadStatus.QUALIFIED);
+    assertThatThrownBy(() ->
+            service.update(uuid1, updatedLead)
+    )
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Lead with email already exists");
+  }
+
+  @Test
+  void shouldThrowException_whenUpdateWithNonExistingId() {
+    UUID uuid = UUID.randomUUID();
+    Lead lead = new Lead(uuid,"borsh@b.com","acme",LeadStatus.NEW);
+    assertThatThrownBy( () ->
+            service.update(uuid,lead)
+    )
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("There is no Lead with such id");
   }
 }

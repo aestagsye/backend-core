@@ -66,6 +66,13 @@
                                class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
                                 Редактировать
                             </a>
+                            <form method="post" action="/leads/${lead.id().toString()}/delete" class="inline">
+                                <button type="submit"
+                                        class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                                        onclick="return confirm('Удалить лида с почтой ${lead.email()}?')">
+                                    Удалить
+                                </button>
+                            </form>
                         </td>
                     </tr>
                 @endfor

@@ -7,7 +7,9 @@ import java.util.UUID;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import ru.mentee.power.crm.model.Lead;
 import ru.mentee.power.crm.model.LeadStatus;
 import ru.mentee.power.crm.repository.LeadRepository;
@@ -66,8 +68,18 @@ public class LeadService {
     if (repository.findById(id).isEmpty()) {
       throw new IllegalStateException("There is no Lead with such id");
     }
-
+    String email = updatedLead.email();
+    if (repository.findByEmail(email).isPresent()) {
+      throw new IllegalStateException("Lead with email already exists: " + email);
+    }
     repository.save(updatedLead);
     return updatedLead;
+  }
+
+  public void delete(UUID id) {
+    if (findById(id).isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    }
+    repository.delete(id);
   }
 }
