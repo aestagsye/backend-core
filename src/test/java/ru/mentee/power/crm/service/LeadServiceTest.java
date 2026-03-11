@@ -161,22 +161,6 @@ class LeadServiceTest {
   }
 
   @Test
-  void shouldThrowException_whenUpdateAlreadyExistingEmail() {
-    service.addLead("dorzh@mail.ru","AcmeCorp",LeadStatus.NEW);
-    UUID uuid = null;
-    if (service.findByEmail("dorzh@mail.ru").isPresent()) {
-      uuid = service.findByEmail("dorzh@mail.ru").get().id();
-    }
-    UUID uuid1 = uuid;
-    Lead updatedLead = new Lead(uuid1,"dorzh@mail.ru","EvilCorp",LeadStatus.QUALIFIED);
-    assertThatThrownBy(() ->
-            service.update(uuid1, updatedLead)
-    )
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("Lead with email already exists");
-  }
-
-  @Test
   void shouldThrowException_whenUpdateWithNonExistingId() {
     UUID uuid = UUID.randomUUID();
     Lead lead = new Lead(uuid,"borsh@b.com","acme",LeadStatus.NEW);

@@ -28,21 +28,16 @@ public class LeadController {
   public String home() {
     return "Spring Boot CRM is running! Beans created: " + leadService.findAll().size() + " leads.";
   }
-
   @GetMapping("/leads")
   public String showLeads(
-      @RequestParam(required = false) LeadStatus status,
-      Model model
+          @RequestParam(required = false) String search,
+          @RequestParam(required = false) LeadStatus status,
+          Model model
   ) {
-    List<Lead> leads;
-    if (status == null) {
-      leads = leadService.findAll();
-    }
-    else {
-      leads = leadService.findByStatus(status);
-    }
+    List<Lead> leads = leadService.findLeads(search, status);
     model.addAttribute("leads", leads);
     model.addAttribute("currentFilter", status);
+    model.addAttribute("search", search != null ? search : "");
     return "leads/list";
   }
 
