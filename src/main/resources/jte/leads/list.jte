@@ -1,26 +1,51 @@
 @import ru.mentee.power.crm.model.LeadStatus
 @param java.util.List<ru.mentee.power.crm.model.Lead> leads
 @param LeadStatus currentFilter
+@param String search = null
 
 @template.layout.main(content = @`
     <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-2xl font-bold mb-4">Lead List</h2>
-
+        <!-- Форма поиска -->
+        <div class="bg-white shadow rounded-lg p-4 mb-6">
+            <form method="get" action="/leads" class="flex gap-2 items-end">
+                <div class="flex-1">
+                    <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Поиск по почте или компании</label>
+                    <input type="text"
+                           id="search"
+                           name="search"
+                           value="${search != null ? search : ""}"
+                           placeholder="Введите текст..."
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                @if(currentFilter != null)
+                    <input type="hidden" name="status" value="${currentFilter}">
+                @endif
+                <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Найти
+                </button>
+                <a href="/leads"
+                   class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-center">
+                    Сбросить
+                </a>
+            </form>
+        </div>
         <!-- Блок фильтров по статусам -->
         <div class="mb-4 flex gap-2">
-            <a href="/leads"
+            <a href="/leads${search != null ? "?search=" + search : ""}"
                class="px-4 py-2 rounded ${currentFilter == null ? "bg-blue-500 text-white" : "bg-gray-200"}">
                 Все
             </a>
-            <a href="/leads?status=NEW"
+            <a href="/leads?status=NEW${search != null ? "&search=" + search : ""}"
                class="px-4 py-2 rounded ${currentFilter == LeadStatus.NEW ? "bg-blue-500 text-white" : "bg-gray-200"}">
                 NEW
             </a>
-            <a href="/leads?status=CONTACTED"
+            <a href="/leads?status=CONTACTED${search != null ? "&search=" + search : ""}"
                class="px-4 py-2 rounded ${currentFilter == LeadStatus.CONTACTED ? "bg-blue-500 text-white" : "bg-gray-200"}">
                 CONTACTED
             </a>
-            <a href="/leads?status=QUALIFIED"
+            <a href="/leads?status=QUALIFIED${search != null ? "&search=" + search : ""}"
                class="px-4 py-2 rounded ${currentFilter == LeadStatus.QUALIFIED ? "bg-blue-500 text-white" : "bg-gray-200"}">
                 QUALIFIED
             </a>

@@ -17,6 +17,9 @@ public class InMemoryLeadRepository implements LeadRepository {
 
   @Override
   public Lead save(Lead lead) {
+    if (findById(lead.id()).isPresent()) {
+      delete(lead.id());
+    }
     storage.put(lead.id(), lead);
     emailIndex.put(lead.email(), lead.id());
     return lead;

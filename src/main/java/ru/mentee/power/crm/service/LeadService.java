@@ -68,10 +68,6 @@ public class LeadService {
     if (repository.findById(id).isEmpty()) {
       throw new IllegalStateException("There is no Lead with such id");
     }
-    String email = updatedLead.email();
-    if (repository.findByEmail(email).isPresent()) {
-      throw new IllegalStateException("Lead with email already exists: " + email);
-    }
     repository.save(updatedLead);
     return updatedLead;
   }
@@ -81,5 +77,23 @@ public class LeadService {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
     repository.delete(id);
+  }
+
+  public List<Lead> findLeads(String search, LeadStatus status) {
+    return repository.findAll().stream()
+            .filter(lead -> {
+              if (search == null || search.isBlank()) {
+                return true;
+              }
+              return lead.email().toLowerCase().contains(search.toLowerCase())
+                      || lead.company().toLowerCase().contains(search.toLowerCase());
+            })
+            .filter(lead -> {
+              if (status == null) {
+                return true;
+              }
+              return lead.status().equals(status);
+            })
+            .toList();
   }
 }
