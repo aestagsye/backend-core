@@ -3,7 +3,6 @@ package ru.mentee.power.crm.service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -83,12 +82,16 @@ public class LeadService {
   public List<Lead> findLeads(String search, LeadStatus status) {
     return repository.findAll().stream()
             .filter(lead -> {
-              if (search == null || search.isBlank()) return true;
+              if (search == null || search.isBlank()) {
+                return true;
+              }
               return lead.email().toLowerCase().contains(search.toLowerCase())
                       || lead.company().toLowerCase().contains(search.toLowerCase());
             })
             .filter(lead -> {
-              if (status == null) return true;
+              if (status == null) {
+                return true;
+              }
               return lead.status().equals(status);
             })
             .toList();

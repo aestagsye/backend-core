@@ -28,6 +28,7 @@ public class LeadController {
   public String home() {
     return "Spring Boot CRM is running! Beans created: " + leadService.findAll().size() + " leads.";
   }
+
   @GetMapping("/leads")
   public String showLeads(
           @RequestParam(required = false) String search,
