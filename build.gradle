@@ -22,6 +22,9 @@ ext {
     tomcatVersion = '11.0.18'
 
     springBootVersion = '4.0.2'
+
+    validationApiVersion = '3.1.1'
+    hibernateValidatorVersion = '8.0.1.Final'
 }
 
 java {
@@ -44,6 +47,9 @@ dependencies {
     testImplementation 'org.mockito:mockito-junit-jupiter:5.21.0'
     testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
     testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test:${springBootVersion}"
+    // Validation dependency
+    implementation "jakarta.validation:jakarta.validation-api:${validationApiVersion}"
+    implementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
     // Tomcat
     implementation "jakarta.servlet:jakarta.servlet-api:${servletVersion}"
     implementation "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}"
@@ -55,6 +61,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation "gg.jte:jte-spring-boot-starter-3:${jteVersion}"
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     // Lombok
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
