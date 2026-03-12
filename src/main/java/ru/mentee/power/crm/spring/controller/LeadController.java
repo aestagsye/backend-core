@@ -60,7 +60,9 @@ public class LeadController {
   }
 
   @PostMapping("/leads/{id}")
-  public String update(@PathVariable UUID id, @Valid @ModelAttribute Lead lead, BindingResult result,
+  public String update(@PathVariable UUID id,
+                       @Valid @ModelAttribute Lead lead,
+                       BindingResult result,
                        Model model) {
     if (result.hasErrors()) {
       model.addAttribute("formAction", "/leads/" + id);
