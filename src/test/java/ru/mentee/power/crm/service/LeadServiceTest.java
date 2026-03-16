@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import ru.mentee.power.crm.model.Lead;
 import ru.mentee.power.crm.model.LeadStatus;
 import ru.mentee.power.crm.repository.InMemoryLeadRepository;
@@ -169,5 +171,129 @@ class LeadServiceTest {
     )
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("There is no Lead with such id");
+  }
+
+  @Test
+  void shouldDeleteLead() {
+    service.addLead("dorzh@mail.ru","AcmeCorp",LeadStatus.NEW);
+    UUID uuid = null;
+    if (service.findByEmail("dorzh@mail.ru").isPresent()) {
+      uuid = service.findByEmail("dorzh@mail.ru").get().id();
+    }
+    service.delete(uuid);
+    assertThat(service.findById(uuid)).isEmpty();
+  }
+
+  @Test
+  void shouldThrowException_whenDeleteNonExistentLead() {
+    UUID uuid = UUID.randomUUID();
+    assertThatThrownBy( () ->
+            service.delete(uuid)
+    )
+            .isInstanceOf(ResponseStatusException.class)
+            .hasMessageContaining(HttpStatus.NOT_FOUND.toString());
+  }
+
+  @Test
+  void shouldReturnAllLeads_whenNoFilters() {
+    // Given
+    service.addLead("a@b.com", "CompanyA", LeadStatus.NEW);
+    service.addLead("c@d.com", "CompanyB", LeadStatus.CONTACTED);
+    service.addLead("e@f.com", "CompanyC", LeadStatus.QUALIFIED);
+
+    // When
+    List<Lead> result = service.findLeads(null, null);
+
+    // Then
+    assertThat(result).hasSize(3);
+  }
+
+  @Test
+  void shouldFilterBySearchTerm() {
+    // Given
+    service.addLead("john@example.com", "John's Company", LeadStatus.NEW);
+    service.addLead("jane@example.com", "Jane's Company", LeadStatus.CONTACTED);
+    service.addLead("bob@example.com", "Bob's Company", LeadStatus.QUALIFIED);
+
+    // When
+    List<Lead> resultByEmail = service.findLeads("john", null);
+    List<Lead> resultByCompany = service.findLeads("Jane's", null);
+    List<Lead> resultCaseInsensitive = service.findLeads("JOHN", null);
+    List<Lead> resultMultiple = service.findLeads("example.com", null);
+
+    // Then
+    assertThat(resultByEmail).hasSize(1).allMatch(lead -> lead.email().contains("john"));
+    assertThat(resultByCompany).hasSize(1).allMatch(lead -> lead.company().contains("Jane's"));
+    assertThat(resultCaseInsensitive).hasSize(1).allMatch(lead -> lead.email().equalsIgnoreCase("john@example.com"));
+    assertThat(resultMultiple).hasSize(3);
+  }
+
+  @Test
+  void shouldFilterByStatus() {
+    // Given
+    service.addLead("a@b.com", "CompanyA", LeadStatus.NEW);
+    service.addLead("c@d.com", "CompanyB", LeadStatus.CONTACTED);
+    service.addLead("e@f.com", "CompanyC", LeadStatus.CONTACTED);
+    service.addLead("g@h.com", "CompanyD", LeadStatus.QUALIFIED);
+
+    // When
+    List<Lead> resultNew = service.findLeads(null, LeadStatus.NEW);
+    List<Lead> resultContacted = service.findLeads(null, LeadStatus.CONTACTED);
+    List<Lead> resultQualified = service.findLeads(null, LeadStatus.QUALIFIED);
+
+    // Then
+    assertThat(resultNew).hasSize(1);
+    assertThat(resultContacted).hasSize(2);
+    assertThat(resultQualified).hasSize(1);
+  }
+
+  @Test
+  void shouldFilterBySearchAndStatus() {
+    // Given
+    service.addLead("alice@company.com", "Alice Inc", LeadStatus.NEW);
+    service.addLead("bob@company.com", "Bob Ltd", LeadStatus.CONTACTED);
+    service.addLead("carol@company.com", "Carol LLC", LeadStatus.NEW);
+    service.addLead("dave@company.com", "Dave Corp", LeadStatus.CONTACTED);
+
+    // When
+    List<Lead> result = service.findLeads("alice", LeadStatus.NEW);
+    List<Lead> result2 = service.findLeads("company", LeadStatus.CONTACTED);
+
+    // Then
+    assertThat(result).hasSize(1)
+            .allMatch(lead -> lead.email().contains("alice") && lead.status() == LeadStatus.NEW);
+    assertThat(result2).hasSize(2)
+            .allMatch(lead -> lead.status() == LeadStatus.CONTACTED);
+  }
+
+  @Test
+  void shouldReturnEmpty_whenNoMatch() {
+    // Given
+    service.addLead("a@b.com", "CompanyA", LeadStatus.NEW);
+
+    // When
+    List<Lead> resultNonexistent = service.findLeads("nonexistent", null);
+    List<Lead> resultWrongStatus = service.findLeads(null, LeadStatus.QUALIFIED);
+    List<Lead> resultCombined = service.findLeads("a@b.com", LeadStatus.QUALIFIED);
+
+    // Then
+    assertThat(resultNonexistent).isEmpty();
+    assertThat(resultWrongStatus).isEmpty();
+    assertThat(resultCombined).isEmpty();
+  }
+
+  @Test
+  void shouldIgnoreBlankSearch() {
+    // Given
+    service.addLead("a@b.com", "CompanyA", LeadStatus.NEW);
+    service.addLead("c@d.com", "CompanyB", LeadStatus.CONTACTED);
+
+    // When
+    List<Lead> resultEmpty = service.findLeads("", null);
+    List<Lead> resultBlank = service.findLeads("   ", null);
+
+    // Then
+    assertThat(resultEmpty).hasSize(2);
+    assertThat(resultBlank).hasSize(2);
   }
 }
