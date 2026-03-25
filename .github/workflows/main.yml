@@ -30,18 +30,6 @@ jobs:
       - name: Build the project
         run: ./gradlew --no-daemon build -x test
 
-      # Проверка наличия schema.sql
-      - name: Check schema.sql
-        run: |
-          ls -la src/main/resources/
-          if [ -f src/main/resources/schema.sql ]; then
-            echo "schema.sql found, first 10 lines:"
-            head -n 10 src/main/resources/schema.sql
-          else
-            echo "ERROR: schema.sql not found in src/main/resources/"
-            exit 1
-          fi
-
       # Запускаем Servlet приложение в фоне
       - name: Start Servlet application
         run: |
@@ -52,9 +40,9 @@ jobs:
       # Запускаем Spring Boot приложение в фоне с сохранением лога
       - name: Start Spring Boot application
         run: |
-          ./gradlew --no-daemon bootRun -Dspring.profiles.active=test > spring.log 2>&1 &
+          SPRING_PROFILES_ACTIVE=test ./gradlew --no-daemon bootRun > spring.log 2>&1 &
           echo $! > spring.pid
-          sleep 30  # увеличиваем время ожидания старта
+          sleep 30
           echo "=== Last 100 lines of spring.log ==="
           tail -n 100 spring.log || true
 
