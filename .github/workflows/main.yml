@@ -30,25 +30,39 @@ jobs:
       - name: Build the project
         run: ./gradlew --no-daemon build -x test
 
+      # Проверка наличия schema.sql
+      - name: Check schema.sql
+        run: |
+          ls -la src/main/resources/
+          if [ -f src/main/resources/schema.sql ]; then
+            echo "schema.sql found, first 10 lines:"
+            head -n 10 src/main/resources/schema.sql
+          else
+            echo "ERROR: schema.sql not found in src/main/resources/"
+            exit 1
+          fi
+
       # Запускаем Servlet приложение в фоне
       - name: Start Servlet application
         run: |
           ./gradlew --no-daemon run &
           echo $! > servlet.pid
-          sleep 10  # Даем время на запуск
+          sleep 10
 
-      # Запускаем Spring Boot приложение в фоне
+      # Запускаем Spring Boot приложение в фоне с сохранением лога
       - name: Start Spring Boot application
         run: |
-          ./gradlew --no-daemon bootRun -Dspring.profiles.active=test &
+          ./gradlew --no-daemon bootRun -Dspring.profiles.active=test > spring.log 2>&1 &
           echo $! > spring.pid
-          sleep 20  # Spring Boot обычно стартует дольше
+          sleep 30  # увеличиваем время ожидания старта
+          echo "=== Last 100 lines of spring.log ==="
+          tail -n 100 spring.log || true
 
-      # Проверяем что серверы запустились
+      # Проверяем, что серверы запустились
       - name: Wait for servers to be ready
         run: |
           timeout 60 bash -c 'until curl -f http://localhost:8080/leads; do sleep 2; done'
-          timeout 60 bash -c 'until curl -f http://localhost:8081/leads; do sleep 2; done'
+          timeout 60 bash -c 'until curl -f http://localhost:8081/leads; do sleep 2; done' || (echo "Spring Boot failed to start. Full log:" && cat spring.log && exit 1)
 
       - name: Run Checkstyle
         run: ./gradlew --no-daemon checkstyleMain
