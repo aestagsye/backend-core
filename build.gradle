@@ -78,6 +78,7 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
 
     // H2 Database (только для тестов)
+    runtimeOnly 'com.h2database:h2:2.3.232'
     testRuntimeOnly 'com.h2database:h2:2.3.232'
 }
 
