@@ -34,15 +34,15 @@ jobs:
       - name: Start Servlet application
         run: |
           ./gradlew --no-daemon run &
-          echo "SERVLET_PID=$!"
+          echo $! > servlet.pid
           sleep 10  # Даем время на запуск
 
       # Запускаем Spring Boot приложение в фоне
       - name: Start Spring Boot application
         run: |
-          ./gradlew --no-daemon bootRun &
-          echo "SPRING_PID=$!"
-          sleep 15  # Spring Boot обычно стартует дольше
+          ./gradlew --no-daemon bootRun -Dspring.profiles.active=test &
+          echo $! > spring.pid
+          sleep 20  # Spring Boot обычно стартует дольше
 
       # Проверяем что серверы запустились
       - name: Wait for servers to be ready
@@ -66,5 +66,6 @@ jobs:
       - name: Stop servers
         if: always()
         run: |
-          kill $SERVLET_PID || true
-          kill $SPRING_PID || true
+          kill $(cat servlet.pid) || true
+          kill $(cat spring.pid) || true
+          rm -f servlet.pid spring.pid
