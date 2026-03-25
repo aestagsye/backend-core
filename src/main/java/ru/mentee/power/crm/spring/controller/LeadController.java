@@ -24,6 +24,7 @@ import ru.mentee.power.crm.service.LeadService;
 @RequiredArgsConstructor
 public class LeadController {
   private final LeadService leadService;
+  String redirectLeads = "redirect:/leads";
 
   @GetMapping("/")
   @ResponseBody
@@ -71,7 +72,7 @@ public class LeadController {
       return "leads/form";
     }
     leadService.update(id, lead);
-    return "redirect:/leads";
+    return redirectLeads;
   }
 
   @PostMapping("/leads")
@@ -84,12 +85,12 @@ public class LeadController {
       return "leads/form";
     }
     leadService.addLead(lead.email(), lead.company(), lead.status());
-    return "redirect:/leads";
+    return redirectLeads;
   }
 
   @PostMapping("/leads/{id}/delete")
   public String deleteLead(@PathVariable UUID id) {
     leadService.delete(id);
-    return "redirect:/leads";
+    return redirectLeads;
   }
 }
