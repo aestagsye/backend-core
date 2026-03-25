@@ -47,26 +47,38 @@ dependencies {
     testImplementation 'org.mockito:mockito-junit-jupiter:5.21.0'
     testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
     testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test:${springBootVersion}"
+
     // Validation dependency
     implementation "jakarta.validation:jakarta.validation-api:${validationApiVersion}"
     implementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
+
     // Tomcat
     implementation "jakarta.servlet:jakarta.servlet-api:${servletVersion}"
     implementation "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}"
+
     // Jte
     implementation "gg.jte:jte:${jteVersion}"
     implementation "gg.jte:jte-runtime:${jteVersion}"
+
     // Sprint 5: Spring Boot Stack (BCORE-14)
     implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation "gg.jte:jte-spring-boot-starter-3:${jteVersion}"
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
     // Lombok
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    // PostgreSQL JDBC Driver (для dev и production)
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // H2 Database (только для тестов)
+    testRuntimeOnly 'com.h2database:h2:2.3.232'
 }
 
 jte {
