@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,8 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.mentee.power.crm.model.Lead;
-import ru.mentee.power.crm.model.LeadStatus;
+import ru.mentee.power.crm.domain.Lead;
+import ru.mentee.power.crm.domain.LeadStatus;
 import ru.mentee.power.crm.repository.LeadRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,7 +49,7 @@ class LeadServiceMockTest {
     verify(mockRepository, times(1)).save(any(Lead.class));
 
     // Then:
-    assertThat(result.email()).isEqualTo("new@example.com");
+    assertThat(result.getEmail()).isEqualTo("new@example.com");
   }
 
   @Test
@@ -58,7 +59,8 @@ class LeadServiceMockTest {
             UUID.randomUUID(),
             "existing@example.com",
             "Existing Company",
-            LeadStatus.CONTACTED
+            LeadStatus.CONTACTED,
+            LocalDateTime.now()
     );
     when(mockRepository.findByEmail("existing@example.com"))
             .thenReturn(Optional.of(existingLead));

@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import ru.mentee.power.crm.model.Deal;
-import ru.mentee.power.crm.model.DealStatus;
+import ru.mentee.power.crm.domain.Deal;
+import ru.mentee.power.crm.domain.DealStatus;
 
 public interface DealRepository {
   void save(Deal deal);

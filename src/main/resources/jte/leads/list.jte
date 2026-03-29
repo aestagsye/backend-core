@@ -1,5 +1,6 @@
-@import ru.mentee.power.crm.model.LeadStatus
-@param java.util.List<ru.mentee.power.crm.model.Lead> leads
+@import ru.mentee.power.crm.domain.Lead
+@import ru.mentee.power.crm.domain.LeadStatus
+@param java.util.List<Lead> leads
 @param LeadStatus currentFilter
 @param String search = null
 
@@ -75,26 +76,26 @@
             @if(leads != null && !leads.isEmpty())
                 @for(var lead : leads)
                     <tr class="border-t hover:bg-gray-50">
-                        <td class="px-4 py-2">${lead.email()}</td>
-                        <td class="px-4 py-2">${lead.company()}</td>
+                        <td class="px-4 py-2">${lead.getEmail()}</td>
+                        <td class="px-4 py-2">${lead.getCompany()}</td>
                         <td class="px-4 py-2">
-                            @if(lead.status() == LeadStatus.NEW)
-                                <span class="px-2 py-1 rounded text-sm bg-green-100 text-green-800">${lead.status()}</span>
-                            @elseif(lead.status() == LeadStatus.CONTACTED)
-                                <span class="px-2 py-1 rounded text-sm bg-yellow-100 text-yellow-800">${lead.status()}</span>
+                            @if(lead.getStatus() == LeadStatus.NEW)
+                                <span class="px-2 py-1 rounded text-sm bg-green-100 text-green-800">${lead.getStatus()}</span>
+                            @elseif(lead.getStatus() == LeadStatus.CONTACTED)
+                                <span class="px-2 py-1 rounded text-sm bg-yellow-100 text-yellow-800">${lead.getStatus()}</span>
                             @else
-                                <span class="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">${lead.status()}</span>
+                                <span class="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">${lead.getStatus()}</span>
                             @endif
                         </td>
                         <td class="px-4 py-2">
-                            <a href="/leads/${lead.id().toString()}/edit"
+                            <a href="/leads/${lead.getId().toString()}/edit"
                                class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
                                 Редактировать
                             </a>
-                            <form method="post" action="/leads/${lead.id().toString()}/delete" class="inline">
+                            <form method="post" action="/leads/${lead.getId().toString()}/delete" class="inline">
                                 <button type="submit"
                                         class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-                                        onclick="return confirm('Удалить лида с почтой ${lead.email()}?')">
+                                        onclick="return confirm('Удалить лида с почтой ${lead.getEmail()}?')">
                                     Удалить
                                 </button>
                             </form>

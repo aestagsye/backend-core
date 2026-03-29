@@ -1,40 +1,32 @@
 package ru.mentee.power.crm.domain;
 
-import java.util.Objects;
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record Lead(UUID id, Contact contact, String company, String status) {
-  public Lead {
-    if (id == null) {
-      throw new IllegalArgumentException("Id cannot be null");
-    }
+@Entity
+@Table(name = "leads")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Lead {
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    if (contact == null) {
-      throw new IllegalArgumentException("Contact cannot be null or empty");
-    }
+  @Column(nullable = false, unique = true, length = 255)
+  private String email;
 
-    if (status == null || status.isBlank()) {
-      throw new IllegalArgumentException("Status cannot be null or empty");
-    }
+  @Column
+  private String company;
 
-    if (!status.equals("NEW") && !status.equals("QUALIFIED") && !status.equals("CONVERTED")) {
-      throw new IllegalArgumentException("Status is invalid");
-    }
-  }
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private LeadStatus status;
 
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof Lead other)) {
-      return false;
-    }
-    return Objects.equals(id, other.id);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id);
-  }
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private LocalDateTime createdAt;
 }

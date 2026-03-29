@@ -1,5 +1,5 @@
-@import ru.mentee.power.crm.model.Lead
-@import ru.mentee.power.crm.model.LeadStatus
+@import ru.mentee.power.crm.domain.Lead
+@import ru.mentee.power.crm.domain.LeadStatus
 
 @param Lead lead = null
 
@@ -19,7 +19,7 @@ content = @`
                         id="email"
                         name="email"
                         required
-                        value="${lead != null ? lead.email() : ""}"
+                        value="${lead != null ? lead.getEmail() : ""}"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                         placeholder="example@company.com"
                 />
@@ -35,7 +35,7 @@ content = @`
                         id="company"
                         name="company"
                         required
-                        value="${lead != null ? lead.company() : ""}"
+                        value="${lead != null ? lead.getCompany() : ""}"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                         placeholder="Company name"
                 />
@@ -52,19 +52,19 @@ content = @`
                         required
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                 >
-                    @if(lead != null && lead.status() == LeadStatus.NEW)
+                    @if(lead != null && lead.getStatus() == LeadStatus.NEW)
                         <option value="NEW" selected>NEW</option>
                     @else
                         <option value="NEW">NEW</option>
                     @endif
 
-                    @if(lead != null && lead.status() == LeadStatus.CONTACTED)
+                    @if(lead != null && lead.getStatus() == LeadStatus.CONTACTED)
                         <option value="CONTACTED" selected>CONTACTED</option>
                     @else
                         <option value="CONTACTED">CONTACTED</option>
                     @endif
 
-                    @if(lead != null && lead.status() == LeadStatus.QUALIFIED)
+                    @if(lead != null && lead.getStatus() == LeadStatus.QUALIFIED)
                         <option value="QUALIFIED" selected>QUALIFIED</option>
                     @else
                         <option value="QUALIFIED">QUALIFIED</option>

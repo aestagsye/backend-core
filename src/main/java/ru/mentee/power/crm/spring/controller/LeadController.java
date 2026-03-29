@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
-import ru.mentee.power.crm.model.Lead;
-import ru.mentee.power.crm.model.LeadStatus;
+import ru.mentee.power.crm.domain.Lead;
+import ru.mentee.power.crm.domain.LeadStatus;
 import ru.mentee.power.crm.service.LeadService;
 
 @Controller
@@ -47,7 +47,7 @@ public class LeadController {
 
   @GetMapping("/leads/new")
   public String showCreateForm(Model model) {
-    model.addAttribute("lead", new Lead(null, "", "", LeadStatus.NEW));
+    model.addAttribute("lead", new Lead(null, "", "", LeadStatus.NEW, null));
     return "leads/create";
   }
 
@@ -84,7 +84,7 @@ public class LeadController {
       model.addAttribute("errors", result);
       return "leads/form";
     }
-    leadService.addLead(lead.email(), lead.company(), lead.status());
+    leadService.addLead(lead.getEmail(), lead.getCompany(), lead.getStatus());
     return redirectLeads;
   }
 

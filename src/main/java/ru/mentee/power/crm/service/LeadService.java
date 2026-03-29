@@ -1,5 +1,6 @@
 package ru.mentee.power.crm.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -10,8 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import ru.mentee.power.crm.model.Lead;
-import ru.mentee.power.crm.model.LeadStatus;
+import ru.mentee.power.crm.domain.Lead;
+import ru.mentee.power.crm.domain.LeadStatus;
 import ru.mentee.power.crm.repository.LeadRepository;
 
 @Service
@@ -19,7 +20,6 @@ public class LeadService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LeadService.class);
   private final LeadRepository repository;
-
   public LeadService(LeadRepository repository) {
     this.repository = repository;
     LOGGER.info("LeadService constructor called");
@@ -37,10 +37,11 @@ public class LeadService {
     }
 
     Lead lead = new Lead(
-            UUID.randomUUID(),
+            null,
             email,
             company,
-            status
+            status,
+            LocalDateTime.now()
     );
 
     return repository.save(lead);
@@ -52,7 +53,7 @@ public class LeadService {
 
   public List<Lead> findByStatus(LeadStatus status) {
     return repository.findAll().stream()
-            .filter(lead -> lead.status().equals(status))
+            .filter(lead -> lead.getStatus().equals(status))
             .toList();
   }
 
@@ -76,7 +77,7 @@ public class LeadService {
     if (findById(id).isEmpty()) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
-    repository.delete(id);
+    repository.deleteById(id);
   }
 
   public List<Lead> findLeads(String search, LeadStatus status) {
@@ -85,14 +86,14 @@ public class LeadService {
               if (search == null || search.isBlank()) {
                 return true;
               }
-              return lead.email().toLowerCase().contains(search.toLowerCase())
-                      || lead.company().toLowerCase().contains(search.toLowerCase());
+              return lead.getEmail().toLowerCase().contains(search.toLowerCase())
+                      || lead.getCompany().toLowerCase().contains(search.toLowerCase());
             })
             .filter(lead -> {
               if (status == null) {
                 return true;
               }
-              return lead.status().equals(status);
+              return lead.getStatus().equals(status);
             })
             .toList();
   }

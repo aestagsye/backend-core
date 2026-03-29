@@ -1,5 +1,6 @@
 package ru.mentee.power.crm.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -8,8 +9,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import ru.mentee.power.crm.model.Lead;
-import ru.mentee.power.crm.model.LeadStatus;
+import ru.mentee.power.crm.domain.Lead;
+import ru.mentee.power.crm.domain.LeadStatus;
 import ru.mentee.power.crm.repository.InMemoryLeadRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
 
@@ -38,10 +39,10 @@ class LeadServiceTest {
 
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.email()).isEqualTo(email);
-    assertThat(result.company()).isEqualTo(company);
-    assertThat(result.status()).isEqualTo(status);
-    assertThat(result.id()).isNotNull();
+    assertThat(result.getEmail()).isEqualTo(email);
+    assertThat(result.getCompany()).isEqualTo(company);
+    assertThat(result.getStatus()).isEqualTo(status);
+    assertThat(result.getId()).isNotNull();
   }
 
   @Test
@@ -77,11 +78,11 @@ class LeadServiceTest {
     Lead created = service.addLead("find@example.com", "Company", LeadStatus.NEW);
 
     // When
-    Optional<Lead> result = service.findById(created.id());
+    Optional<Lead> result = service.findById(created.getId());
 
     // Then
     assertThat(result).isPresent();
-    assertThat(result.get().email()).isEqualTo("find@example.com");
+    assertThat(result.get().getEmail()).isEqualTo("find@example.com");
   }
 
   @Test
@@ -94,7 +95,7 @@ class LeadServiceTest {
 
     // Then
     assertThat(result).isPresent();
-    assertThat(result.get().company()).isEqualTo("Company");
+    assertThat(result.get().getCompany()).isEqualTo("Company");
   }
 
   @Test
@@ -125,13 +126,13 @@ class LeadServiceTest {
     // Then
     assertThat(result)
             .hasSize(3)
-            .allMatch(lead -> lead.status().equals(LeadStatus.NEW));
+            .allMatch(lead -> lead.getStatus().equals(LeadStatus.NEW));
     assertThat(result1)
             .hasSize(5)
-            .allMatch(lead -> lead.status().equals(LeadStatus.CONTACTED));
+            .allMatch(lead -> lead.getStatus().equals(LeadStatus.CONTACTED));
     assertThat(result2)
             .hasSize(2)
-            .allMatch(lead -> lead.status().equals(LeadStatus.QUALIFIED));
+            .allMatch(lead -> lead.getStatus().equals(LeadStatus.QUALIFIED));
   }
 
   @Test
@@ -155,9 +156,10 @@ class LeadServiceTest {
     service.addLead("dorzh@mail.ru","AcmeCorp",LeadStatus.NEW);
     UUID uuid = null;
     if (service.findByEmail("dorzh@mail.ru").isPresent()) {
-      uuid = service.findByEmail("dorzh@mail.ru").get().id();
+      uuid = service.findByEmail("dorzh@mail.ru").get().getId();
     }
-    Lead updatedLead = new Lead(uuid, "bebra@b.com","EvilCorp", LeadStatus.QUALIFIED);
+    Lead updatedLead = new Lead(uuid, "bebra@b.com","EvilCorp",
+            LeadStatus.QUALIFIED, LocalDateTime.now());
     service.update(uuid, updatedLead);
     assertThat(service.findByEmail("bebra@b.com")).contains(updatedLead);
   }
@@ -165,7 +167,7 @@ class LeadServiceTest {
   @Test
   void shouldThrowException_whenUpdateWithNonExistingId() {
     UUID uuid = UUID.randomUUID();
-    Lead lead = new Lead(uuid,"borsh@b.com","acme",LeadStatus.NEW);
+    Lead lead = new Lead(uuid,"borsh@b.com","acme",LeadStatus.NEW, LocalDateTime.now());
     assertThatThrownBy( () ->
             service.update(uuid,lead)
     )
@@ -178,7 +180,7 @@ class LeadServiceTest {
     service.addLead("dorzh@mail.ru","AcmeCorp",LeadStatus.NEW);
     UUID uuid = null;
     if (service.findByEmail("dorzh@mail.ru").isPresent()) {
-      uuid = service.findByEmail("dorzh@mail.ru").get().id();
+      uuid = service.findByEmail("dorzh@mail.ru").get().getId();
     }
     service.delete(uuid);
     assertThat(service.findById(uuid)).isEmpty();
@@ -222,9 +224,9 @@ class LeadServiceTest {
     List<Lead> resultMultiple = service.findLeads("example.com", null);
 
     // Then
-    assertThat(resultByEmail).hasSize(1).allMatch(lead -> lead.email().contains("john"));
-    assertThat(resultByCompany).hasSize(1).allMatch(lead -> lead.company().contains("Jane's"));
-    assertThat(resultCaseInsensitive).hasSize(1).allMatch(lead -> lead.email().equalsIgnoreCase("john@example.com"));
+    assertThat(resultByEmail).hasSize(1).allMatch(lead -> lead.getEmail().contains("john"));
+    assertThat(resultByCompany).hasSize(1).allMatch(lead -> lead.getCompany().contains("Jane's"));
+    assertThat(resultCaseInsensitive).hasSize(1).allMatch(lead -> lead.getEmail().equalsIgnoreCase("john@example.com"));
     assertThat(resultMultiple).hasSize(3);
   }
 
@@ -261,9 +263,9 @@ class LeadServiceTest {
 
     // Then
     assertThat(result).hasSize(1)
-            .allMatch(lead -> lead.email().contains("alice") && lead.status() == LeadStatus.NEW);
+            .allMatch(lead -> lead.getEmail().contains("alice") && lead.getStatus() == LeadStatus.NEW);
     assertThat(result2).hasSize(2)
-            .allMatch(lead -> lead.status() == LeadStatus.CONTACTED);
+            .allMatch(lead -> lead.getStatus() == LeadStatus.CONTACTED);
   }
 
   @Test

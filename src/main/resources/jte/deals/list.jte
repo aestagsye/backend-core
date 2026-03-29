@@ -1,4 +1,4 @@
-@import ru.mentee.power.crm.model.Deal
+@import ru.mentee.power.crm.domain.Deal
 @param java.util.List<Deal> deals
 
 <!DOCTYPE html>
