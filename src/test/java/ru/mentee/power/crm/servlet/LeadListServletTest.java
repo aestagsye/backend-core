@@ -9,12 +9,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.mentee.power.crm.model.Lead;
-import ru.mentee.power.crm.model.LeadStatus;
+import ru.mentee.power.crm.domain.Lead;
+import ru.mentee.power.crm.domain.LeadStatus;
 import ru.mentee.power.crm.service.LeadService;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,8 +59,8 @@ class LeadListServletTest {
   @Test
   void testDoGetRendersLeadsCorrectly() throws Exception {
     List<Lead> mockLeads = List.of(
-            new Lead(UUID.randomUUID(), "lead1@test.com", "Company1", LeadStatus.NEW),
-            new Lead(UUID.randomUUID(), "lead2@test.com", "Company2", LeadStatus.CONTACTED)
+            new Lead(UUID.randomUUID(), "lead1@test.com", "Company1", LeadStatus.NEW, LocalDateTime.now()),
+            new Lead(UUID.randomUUID(), "lead2@test.com", "Company2", LeadStatus.CONTACTED, LocalDateTime.now())
     );
 
     when(servletContext.getAttribute("leadService")).thenReturn(leadService);

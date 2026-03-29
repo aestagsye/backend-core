@@ -1,5 +1,5 @@
-@import ru.mentee.power.crm.model.Deal
-@import ru.mentee.power.crm.model.DealStatus
+@import ru.mentee.power.crm.domain.Deal
+@import ru.mentee.power.crm.domain.DealStatus
 @param java.util.Map<DealStatus, java.util.List<Deal>> dealsByStatus
 
 <!DOCTYPE html>

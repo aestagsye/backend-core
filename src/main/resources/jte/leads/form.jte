@@ -1,5 +1,6 @@
-@import ru.mentee.power.crm.model.LeadStatus
-@param ru.mentee.power.crm.model.Lead lead
+@import ru.mentee.power.crm.domain.Lead
+@import ru.mentee.power.crm.domain.LeadStatus
+@param Lead lead
 @param org.springframework.validation.BindingResult errors = null
 @param String formAction
 @param String submitButtonText
@@ -25,7 +26,7 @@
                 <input type="email"
                        id="email"
                        name="email"
-                       value="${lead.email() != null ? lead.email() : ""}"
+                       value="${lead.getEmail() != null ? lead.getEmail() : ""}"
                        class="w-full px-3 py-2 border ${errors != null && errors.hasFieldErrors("email") ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                 @if(errors != null && errors.hasFieldErrors("email"))
                     <p class="text-red-600 text-sm mt-1">${errors.getFieldError("email").getDefaultMessage()}</p>
@@ -38,7 +39,7 @@
                 <input type="text"
                        id="company"
                        name="company"
-                       value="${lead.company() != null ? lead.company() : ""}"
+                       value="${lead.getCompany() != null ? lead.getCompany() : ""}"
                        class="w-full px-3 py-2 border ${errors != null && errors.hasFieldErrors("company") ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                 @if(errors != null && errors.hasFieldErrors("company"))
                     <p class="text-red-600 text-sm mt-1">${errors.getFieldError("company").getDefaultMessage()}</p>
@@ -51,9 +52,9 @@
                 <select id="status"
                         name="status"
                         class="w-full px-3 py-2 border ${errors != null && errors.hasFieldErrors("status") ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    <option value="NEW" selected="${lead.status() == LeadStatus.NEW}">NEW</option>
-                    <option value="CONTACTED" selected="${lead.status() == LeadStatus.CONTACTED}">CONTACTED</option>
-                    <option value="QUALIFIED" selected="${lead.status() == LeadStatus.QUALIFIED}">QUALIFIED</option>
+                    <option value="NEW" selected="${lead.getStatus() == LeadStatus.NEW}">NEW</option>
+                    <option value="CONTACTED" selected="${lead.getStatus() == LeadStatus.CONTACTED}">CONTACTED</option>
+                    <option value="QUALIFIED" selected="${lead.getStatus() == LeadStatus.QUALIFIED}">QUALIFIED</option>
                 </select>
                 @if(errors != null && errors.hasFieldErrors("status"))
                     <p class="text-red-600 text-sm mt-1">${errors.getFieldError("status").getDefaultMessage()}</p>

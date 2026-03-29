@@ -1,4 +1,4 @@
-@param java.util.List<ru.mentee.power.crm.model.Lead> leads
+@param java.util.List<ru.mentee.power.crm.domain.Lead> leads
 
 @template.layout.main(content = @`
     <div class="bg-white rounded-lg shadow-md p-6">
@@ -15,11 +15,11 @@
             <tbody>
                 @for(var lead : leads)
                     <tr class="border-t hover:bg-gray-50">
-                        <td class="px-4 py-2">${lead.email()}</td>
-                        <td class="px-4 py-2">${lead.company()}</td>
+                        <td class="px-4 py-2">${lead.getEmail()}</td>
+                        <td class="px-4 py-2">${lead.getCompany()}</td>
                         <td class="px-4 py-2">
                             <span class="px-2 py-1 rounded text-sm bg-green-100 text-green-800">
-                                ${lead.status()}
+                                ${lead.getStatus()}
                             </span>
                         </td>
                     </tr>

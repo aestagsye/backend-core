@@ -8,8 +8,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
-import ru.mentee.power.crm.model.Deal;
-import ru.mentee.power.crm.model.DealStatus;
+import ru.mentee.power.crm.domain.Deal;
+import ru.mentee.power.crm.domain.DealStatus;
 import ru.mentee.power.crm.repository.DealRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
 

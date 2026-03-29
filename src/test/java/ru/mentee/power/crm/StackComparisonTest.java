@@ -100,7 +100,7 @@ class StackComparisonTest {
     long start = System.nanoTime();
 
     ConfigurableApplicationContext context = SpringApplication.run(
-            ru.mentee.power.crm.spring.Application.class,
+            Application.class,
             "--server.port=" + TEST_PORT,
             "--spring.main.banner-mode=off"
     );

@@ -16,7 +16,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import ru.mentee.power.crm.model.Lead;
+import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.service.LeadService;
 
 @WebServlet("/leads")

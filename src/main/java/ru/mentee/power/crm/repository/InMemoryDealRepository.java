@@ -8,8 +8,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
-import ru.mentee.power.crm.model.Deal;
-import ru.mentee.power.crm.model.DealStatus;
+import ru.mentee.power.crm.domain.Deal;
+import ru.mentee.power.crm.domain.DealStatus;
 
 @Repository
 public class InMemoryDealRepository implements DealRepository {

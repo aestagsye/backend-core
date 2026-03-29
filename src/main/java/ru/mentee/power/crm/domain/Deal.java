@@ -1,4 +1,4 @@
-package ru.mentee.power.crm.model;
+package ru.mentee.power.crm.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

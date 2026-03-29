@@ -1,6 +1,6 @@
 package ru.mentee.power.crm.service;
 
-import ru.mentee.power.crm.spring.Application;
+import ru.mentee.power.crm.Application;
 import ru.mentee.power.crm.repository.LeadRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
