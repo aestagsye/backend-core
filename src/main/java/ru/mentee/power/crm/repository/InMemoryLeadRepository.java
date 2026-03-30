@@ -194,7 +194,9 @@ public class InMemoryLeadRepository implements LeadRepository {
   }
 
   @Override
-  public <S extends Lead, R> R findBy(Example<S> example, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
+  public <S extends Lead, R> R findBy(Example<S> example,
+                                      Function<FluentQuery.FetchableFluentQuery<S>,
+                                              R> queryFunction) {
     return null;
   }
 
