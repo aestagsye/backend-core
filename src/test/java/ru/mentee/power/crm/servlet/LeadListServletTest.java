@@ -11,7 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
-import ru.mentee.power.crm.service.LeadService;
+import ru.mentee.power.crm.service.LeadServiceLegacy;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -38,7 +38,7 @@ class LeadListServletTest {
   private HttpServletResponse response;
 
   @Mock
-  private LeadService leadService;
+  private LeadServiceLegacy leadService;
 
   private LeadListServlet servlet;
   private StringWriter responseWriter;
