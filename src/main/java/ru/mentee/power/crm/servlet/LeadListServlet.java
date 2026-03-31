@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import ru.mentee.power.crm.domain.Lead;
-import ru.mentee.power.crm.service.LeadService;
+import ru.mentee.power.crm.service.LeadServiceLegacy;
 
 @WebServlet("/leads")
 public class LeadListServlet extends HttpServlet {
@@ -35,7 +35,7 @@ public class LeadListServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
           throws ServletException, IOException {
 
-    LeadService service = (LeadService) getServletContext().getAttribute("leadService");
+    LeadServiceLegacy service = (LeadServiceLegacy) getServletContext().getAttribute("leadService");
     List<Lead> leads = service.findAll();
 
     Map<String, Object> model = new HashMap<>();

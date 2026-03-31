@@ -5,14 +5,14 @@ import java.io.File;
 import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
 import ru.mentee.power.crm.repository.InMemoryLeadRepository;
-import ru.mentee.power.crm.repository.LeadRepository;
-import ru.mentee.power.crm.service.LeadService;
+import ru.mentee.power.crm.repository.LeadRepositoryLegacy;
+import ru.mentee.power.crm.service.LeadServiceLegacy;
 import ru.mentee.power.crm.servlet.LeadListServlet;
 
 public class Main {
   public static void main(String[] args) throws Exception {
-    LeadRepository repository = new InMemoryLeadRepository();
-    LeadService leadService = new LeadService(repository);
+    LeadRepositoryLegacy repository = new InMemoryLeadRepository();
+    LeadServiceLegacy leadService = new LeadServiceLegacy(repository);
 
     Tomcat tomcat = new Tomcat();
     tomcat.setPort(8080);

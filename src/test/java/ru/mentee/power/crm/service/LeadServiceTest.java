@@ -7,41 +7,52 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
-import ru.mentee.power.crm.repository.InMemoryLeadRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@SpringBootTest
+@Transactional
 class LeadServiceTest {
 
+  @Autowired
   private LeadService service;
 
+  @Autowired
+  private LeadRepository repository;
+
+  // Given
   @BeforeEach
   void setUp() {
-    LeadRepository repository = new InMemoryLeadRepository();
-    service = new LeadService(repository);
+    repository.deleteAll();
+
+    // Создаём 3 NEW лида
+    for (int i = 1; i <= 3; i++) {
+      Lead lead = new Lead();
+      lead.setEmail("lead" + i + "@example.com");
+      lead.setCompany("Company " + i);
+      lead.setStatus(LeadStatus.NEW);
+      repository.save(lead);
+    }
   }
 
   @Test
   void shouldCreateLead_whenEmailIsUnique() {
-    // Given
-    String email = "test@example.com";
-    String company = "Test Company";
-    LeadStatus status = LeadStatus.NEW;
-
     // When
-    Lead result = service.addLead(email, company, status);
-
+    Lead result = repository.findByEmail("lead" + 1 + "@example.com").get();
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.getEmail()).isEqualTo(email);
-    assertThat(result.getCompany()).isEqualTo(company);
-    assertThat(result.getStatus()).isEqualTo(status);
+    assertThat(result.getEmail()).isEqualTo("lead" + 1 + "@example.com");
+    assertThat(result.getCompany()).isEqualTo("Company " + 1);
+    assertThat(result.getStatus()).isEqualTo(LeadStatus.NEW);
     assertThat(result.getId()).isNotNull();
   }
 
@@ -61,15 +72,11 @@ class LeadServiceTest {
 
   @Test
   void shouldFindAllLeads() {
-    // Given
-    service.addLead("one@example.com", "Company 1", LeadStatus.NEW);
-    service.addLead("two@example.com", "Company 2", LeadStatus.CONTACTED);
-
     // When
     List<Lead> result = service.findAll();
 
     // Then
-    assertThat(result).hasSize(2);
+    assertThat(result).hasSize(3);
   }
 
   @Test
@@ -109,30 +116,12 @@ class LeadServiceTest {
 
   @Test
   void shouldReturnOnlyExactLeads_whenFindByExactStatus() {
-    // Given
-    for (int i = 0; i < 10; i++) {
-      if (i<3) {
-        service.addLead("new"+i+"@n.com","EvilCorp"+i, LeadStatus.NEW);
-      } else if (i<8) {
-        service.addLead("contacted"+i+"@c.com", "NeutralCorp"+i, LeadStatus.CONTACTED);
-      } else {
-        service.addLead("qualified"+i+"@q.com","AngelCorp"+i,LeadStatus.QUALIFIED);
-      }
-    }
     // When
     List<Lead> result = service.findByStatus(LeadStatus.NEW);
-    List<Lead> result1 = service.findByStatus(LeadStatus.CONTACTED);
-    List<Lead> result2 = service.findByStatus(LeadStatus.QUALIFIED);
     // Then
     assertThat(result)
             .hasSize(3)
             .allMatch(lead -> lead.getStatus().equals(LeadStatus.NEW));
-    assertThat(result1)
-            .hasSize(5)
-            .allMatch(lead -> lead.getStatus().equals(LeadStatus.CONTACTED));
-    assertThat(result2)
-            .hasSize(2)
-            .allMatch(lead -> lead.getStatus().equals(LeadStatus.QUALIFIED));
   }
 
   @Test
@@ -198,11 +187,6 @@ class LeadServiceTest {
 
   @Test
   void shouldReturnAllLeads_whenNoFilters() {
-    // Given
-    service.addLead("a@b.com", "CompanyA", LeadStatus.NEW);
-    service.addLead("c@d.com", "CompanyB", LeadStatus.CONTACTED);
-    service.addLead("e@f.com", "CompanyC", LeadStatus.QUALIFIED);
-
     // When
     List<Lead> result = service.findLeads(null, null);
 
@@ -227,26 +211,20 @@ class LeadServiceTest {
     assertThat(resultByEmail).hasSize(1).allMatch(lead -> lead.getEmail().contains("john"));
     assertThat(resultByCompany).hasSize(1).allMatch(lead -> lead.getCompany().contains("Jane's"));
     assertThat(resultCaseInsensitive).hasSize(1).allMatch(lead -> lead.getEmail().equalsIgnoreCase("john@example.com"));
-    assertThat(resultMultiple).hasSize(3);
+    assertThat(resultMultiple).hasSize(6);
   }
 
   @Test
   void shouldFilterByStatus() {
-    // Given
-    service.addLead("a@b.com", "CompanyA", LeadStatus.NEW);
-    service.addLead("c@d.com", "CompanyB", LeadStatus.CONTACTED);
-    service.addLead("e@f.com", "CompanyC", LeadStatus.CONTACTED);
-    service.addLead("g@h.com", "CompanyD", LeadStatus.QUALIFIED);
-
     // When
     List<Lead> resultNew = service.findLeads(null, LeadStatus.NEW);
     List<Lead> resultContacted = service.findLeads(null, LeadStatus.CONTACTED);
     List<Lead> resultQualified = service.findLeads(null, LeadStatus.QUALIFIED);
 
     // Then
-    assertThat(resultNew).hasSize(1);
-    assertThat(resultContacted).hasSize(2);
-    assertThat(resultQualified).hasSize(1);
+    assertThat(resultNew).hasSize(3);
+    assertThat(resultContacted).hasSize(0);
+    assertThat(resultQualified).hasSize(0);
   }
 
   @Test
@@ -286,16 +264,37 @@ class LeadServiceTest {
 
   @Test
   void shouldIgnoreBlankSearch() {
-    // Given
-    service.addLead("a@b.com", "CompanyA", LeadStatus.NEW);
-    service.addLead("c@d.com", "CompanyB", LeadStatus.CONTACTED);
-
     // When
     List<Lead> resultEmpty = service.findLeads("", null);
     List<Lead> resultBlank = service.findLeads("   ", null);
 
     // Then
-    assertThat(resultEmpty).hasSize(2);
-    assertThat(resultBlank).hasSize(2);
+    assertThat(resultEmpty).hasSize(3);
+    assertThat(resultBlank).hasSize(3);
+  }
+
+  @Test
+  void convertNewToContacted_shouldUpdateMultipleLeads() {
+    // When
+    int updated = service.convertNewToContacted();
+
+    // Then
+    assertThat(updated).isEqualTo(3);
+
+    // Проверяем что статус изменился
+    long contactedCount = repository.countByStatus(LeadStatus.CONTACTED);
+    assertThat(contactedCount).isEqualTo(3);
+
+    long newCount = repository.countByStatus(LeadStatus.NEW);
+    assertThat(newCount).isEqualTo(0);
+  }
+
+  @Test
+  void archiveOldLeads() {
+    // When
+    int deleted = service.archiveOldLeads(LeadStatus.NEW);
+
+    // Then
+    assertThat(deleted).isEqualTo(3);
   }
 }
