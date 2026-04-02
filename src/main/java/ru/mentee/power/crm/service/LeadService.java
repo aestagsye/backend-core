@@ -14,17 +14,25 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import ru.mentee.power.crm.domain.CreateDealRequest;
+import ru.mentee.power.crm.domain.Deal;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
+import ru.mentee.power.crm.exception.IllegalLeadStateException;
+import ru.mentee.power.crm.repository.DealRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
 
 @Service
 @RequiredArgsConstructor
 public class LeadService {
 
-  private final LeadRepository repository;
+  private final LeadRepository leadRepository;
+  private final DealRepository dealRepository;
+  private LeadProcessor leadProcessor;
+
   private static final Logger LOGGER = LoggerFactory.getLogger(LeadService.class);
 
   @PostConstruct
@@ -36,14 +44,14 @@ public class LeadService {
    * Поиск лида по email (derived method).
    */
   public Optional<Lead> findByEmail(String email) {
-    return repository.findByEmail(email);
+    return leadRepository.findByEmail(email);
   }
 
   /**
    * Поиск лидов по списку статусов (JPQL).
    */
   public List<Lead> findByStatuses(LeadStatus... statuses) {
-    return repository.findByStatusIn(List.of(statuses));
+    return leadRepository.findByStatusIn(List.of(statuses));
   }
 
   /**
@@ -55,12 +63,12 @@ public class LeadService {
             pageSize,
             Sort.by("createdAt").descending()
     );
-    return repository.findAll(pageRequest);
+    return leadRepository.findAll(pageRequest);
   }
 
   public Page<Lead> searchByCompany(String company, int page, int size) {
     Pageable pageable = PageRequest.of(page, size);
-    return repository.findByCompany(company, pageable);
+    return leadRepository.findByCompany(company, pageable);
   }
 
   /**
@@ -69,7 +77,7 @@ public class LeadService {
    */
   @Transactional
   public int convertNewToContacted() {
-    int updated = repository.updateStatusBulk(LeadStatus.NEW, LeadStatus.CONTACTED);
+    int updated = leadRepository.updateStatusBulk(LeadStatus.NEW, LeadStatus.CONTACTED);
     // Логируем для observability
     System.out.printf("Converted %d leads from NEW to CONTACTED%n", updated);
     return updated;
@@ -77,11 +85,11 @@ public class LeadService {
 
   @Transactional
   public int archiveOldLeads(LeadStatus status) {
-    return repository.deleteByStatusBulk(status);
+    return leadRepository.deleteByStatusBulk(status);
   }
 
   public List<Lead> findLeads(String search, LeadStatus status) {
-    return repository.findAll().stream()
+    return leadRepository.findAll().stream()
             .filter(lead -> {
               if (search == null || search.isBlank()) {
                 return true;
@@ -99,7 +107,7 @@ public class LeadService {
   }
 
   public Lead addLead(String email, String company, LeadStatus status) {
-    Optional<Lead> existing = repository.findByEmail(email);
+    Optional<Lead> existing = leadRepository.findByEmail(email);
     if (existing.isPresent()) {
       throw new IllegalStateException("Lead with email "
               + "already exists: " + email);
@@ -107,28 +115,28 @@ public class LeadService {
 
     Lead lead = new Lead(null, email,
             company, status, null);
-    return repository.save(lead);
+    return leadRepository.save(lead);
   }
 
   public List<Lead> findAll() {
-    return repository.findAll();
+    return leadRepository.findAll();
   }
 
   public List<Lead> findByStatus(LeadStatus status) {
-    return repository.findAll().stream()
+    return leadRepository.findAll().stream()
             .filter(lead -> lead.getStatus().equals(status))
             .toList();
   }
 
   public Optional<Lead> findById(UUID id) {
-    return repository.findById(id);
+    return leadRepository.findById(id);
   }
 
   public Lead update(UUID id, Lead updatedLead) {
-    if (repository.findById(id).isEmpty()) {
+    if (leadRepository.findById(id).isEmpty()) {
       throw new IllegalStateException("There is no Lead with such id");
     }
-    repository.save(updatedLead);
+    leadRepository.save(updatedLead);
     return updatedLead;
   }
 
@@ -136,6 +144,39 @@ public class LeadService {
     if (findById(id).isEmpty()) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
-    repository.deleteById(id);
+    leadRepository.deleteById(id);
+  }
+
+  @Transactional
+  public Deal convertLeadToDeal(UUID leadId, CreateDealRequest request) {
+    Lead found = leadRepository.findById(leadId)
+            .orElseThrow(() -> new IllegalArgumentException("Lead not found: " + leadId));
+    if (found.getStatus() != LeadStatus.QUALIFIED) {
+      throw new IllegalLeadStateException(leadId, found.getStatus());
+    }
+    Deal deal = new Deal(leadId, request.getAmount());
+    Deal savedDeal = dealRepository.save(deal);
+
+    found.setStatus(LeadStatus.CONVERTED);
+    leadRepository.save(found);
+    return savedDeal;
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void processLeads(List<UUID> ids) {
+    for (UUID id : ids) {
+      leadProcessor.processSingleLead(id);
+    }
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void processSingleLead(UUID leadId) {
+    Lead lead = leadRepository.findById(leadId)
+            .orElseThrow(() -> new IllegalArgumentException("Lead not found: " + leadId));
+    if (lead.getEmail().contains("throw-exception")) {
+      throw new RuntimeException("Simulated error for lead: " + leadId);
+    }
+    lead.setStatus(LeadStatus.CONTACTED);
+    leadRepository.save(lead);
   }
 }

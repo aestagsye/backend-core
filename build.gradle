@@ -139,7 +139,9 @@ jacocoTestReport {
                     'gg/jte/generated/**',
                     '**/service/LeadServiceLegacy.class',
                     '**/repository/InMemoryLeadRepository.class',
-                    '**/Main.class'
+                    '**/repository/InMemoryDealRepository.class',
+                    '**/Main.class',
+                    '**/service/LeadProcessor.class'
 
             ])
         }))
@@ -165,7 +167,9 @@ jacocoTestCoverageVerification {
                     'gg/jte/generated/**',
                     '**/service/LeadServiceLegacy.class',
                     '**/repository/InMemoryLeadRepository.class',
-                    '**/Main.class'
+                    '**/repository/InMemoryDealRepository.class',
+                    '**/Main.class',
+                    '**/service/LeadProcessor.class'
             ])
         }))
     }

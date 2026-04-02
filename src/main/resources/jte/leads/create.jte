@@ -69,6 +69,12 @@ content = @`
                     @else
                         <option value="QUALIFIED">QUALIFIED</option>
                     @endif
+
+                    @if(lead != null && lead.getStatus() == LeadStatus.CONVERTED)
+                        <option value="CONVERTED" selected>CONVERTED</option>
+                    @else
+                        <option value="CONVERTED">CONVERTED</option>
+                    @endif
                 </select>
             </div>
 

@@ -7,7 +7,6 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.test.context.ActiveProfiles;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
@@ -25,20 +24,17 @@ class LeadRepositoryTest {
   @Autowired
   private LeadRepository repository;
 
-  private Lead lead1;
-  private Lead lead2;
-
   @BeforeEach
   void setUp() {
     // Подготовка тестовых данных
-    lead1 = new Lead();
+    Lead lead1 = new Lead();
     lead1.setEmail("john@example.com");
     lead1.setCompany("ACME Corp");
     lead1.setStatus(LeadStatus.NEW);
     lead1.setCreatedAt(LocalDateTime.now().minusDays(5));
     repository.save(lead1);
 
-    lead2 = new Lead();
+    Lead lead2 = new Lead();
     lead2.setEmail("jane@example.com");
     lead2.setCompany("Tech Inc");
     lead2.setStatus(LeadStatus.CONTACTED);
@@ -114,7 +110,7 @@ class LeadRepositoryTest {
 
     // Then
     assertThat(newLeads).hasSize(1);
-    assertThat(newLeads.get(0).getEmail()).isEqualTo("john@example.com");
+    assertThat(newLeads.getFirst().getEmail()).isEqualTo("john@example.com");
   }
 
   @Test
@@ -141,14 +137,9 @@ class LeadRepositoryTest {
     assertThat(page.getContent()).hasSize(1);
     assertThat(page.getTotalElements()).isEqualTo(2);
     assertThat(page.getTotalPages()).isEqualTo(2);
-    assertThat(page.getNumber()).isEqualTo(0); // текущая страница
+    assertThat(page.getNumber()).isZero(); // текущая страница
   }
 
-  // TODO: Студент добавляет тесты:
-  // - для countByStatus
-  // - для existsByEmail
-  // - для findByStatusAndCompany
-  // - для bulk операции updateStatusBulk (в отдельном тесте с @Modifying)
   @Test
   void countByStatus_shouldReturnCount() {
     // When
@@ -174,16 +165,4 @@ class LeadRepositoryTest {
     assertThat(leads).isNotEmpty()
             .hasSize(1);
   }
-
-  /*
-  @Modifying
-  @Test
-  void updateStatusBulk() {
-    // When:
-    repository.updateStatusBulk(LeadStatus.NEW, LeadStatus.CONTACTED);
-    // Then:
-    assertThat(repository.countByStatus(LeadStatus.NEW)).isZero();
-    assertThat(repository.countByStatus(LeadStatus.CONTACTED)).isEqualTo(2);
-  }
-  */
 }

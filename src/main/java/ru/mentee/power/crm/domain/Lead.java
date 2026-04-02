@@ -39,4 +39,10 @@ public class Lead {
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
+
+  public Lead(String email, String company, LeadStatus status) {
+    this.email = email;
+    this.company = company;
+    this.status = status;
+  }
 }

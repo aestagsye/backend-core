@@ -12,7 +12,7 @@ import ru.mentee.power.crm.domain.Deal;
 import ru.mentee.power.crm.domain.DealStatus;
 
 @Repository
-public class InMemoryDealRepository implements DealRepository {
+public class InMemoryDealRepository implements DealRepositoryLegacy {
   private final Map<UUID, Deal> storage = new ConcurrentHashMap<>();
 
   @Override

@@ -62,6 +62,12 @@
                     @else
                         <option value="QUALIFIED">Квалифицирован</option>
                     @endif
+
+                    @if(lead.getStatus() == LeadStatus.CONVERTED)
+                        <option value="CONVERTED" selected>Конвертирован</option>
+                    @else
+                        <option value="CONVERTED">Конвертирован</option>
+                    @endif
                 </select>
             </div>
 
