@@ -50,6 +50,10 @@
                class="px-4 py-2 rounded ${currentFilter == LeadStatus.QUALIFIED ? "bg-blue-500 text-white" : "bg-gray-200"}">
                 QUALIFIED
             </a>
+            <a href="/leads?status=CONVERTED${search != null ? "&search=" + search : ""}"
+               class="px-4 py-2 rounded ${currentFilter == LeadStatus.CONVERTED ? "bg-blue-500 text-white" : "bg-gray-200"}">
+                CONVERTED
+            </a>
         </div>
 
         <div class="mb-4 flex justify-between items-center">
@@ -83,8 +87,10 @@
                                 <span class="px-2 py-1 rounded text-sm bg-green-100 text-green-800">${lead.getStatus()}</span>
                             @elseif(lead.getStatus() == LeadStatus.CONTACTED)
                                 <span class="px-2 py-1 rounded text-sm bg-yellow-100 text-yellow-800">${lead.getStatus()}</span>
-                            @else
+                            @elseif(lead.getStatus() == LeadStatus.QUALIFIED)
                                 <span class="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">${lead.getStatus()}</span>
+                            @else
+                                <span class="px-2 py-1 rounded text-sm bg-red-100 text-purple-800">${lead.getStatus()}</span>
                             @endif
                         </td>
                         <td class="px-4 py-2">

@@ -5,33 +5,55 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.CreationTimestamp;
+
+@Entity
+@Table(name = "deals")
 public class Deal {
-  private final UUID id;
-  private final UUID leadId;
-  private final BigDecimal amount;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
+
+  @Column(nullable = false)
+  private UUID leadId;
+
+  @Column(nullable = false, precision = 15, scale = 2)
+  private BigDecimal amount;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
   private DealStatus status;
-  private final LocalDateTime createdAt;
+
+  @CreationTimestamp
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private LocalDateTime createdAt;
+
+  public Deal() {
+  }
 
   public Deal(UUID leadId, BigDecimal amount) {
-    this.id = UUID.randomUUID();
     this.leadId = Objects.requireNonNull(leadId, "leadId must not be null");
     this.amount = Objects.requireNonNull(amount, "amount must not be null");
     this.status = DealStatus.NEW;
-    this.createdAt = LocalDateTime.now();
   }
-  
+
   public Deal(UUID id, UUID leadId, BigDecimal amount, DealStatus status, LocalDateTime createdAt) {
-    this.id = id;
     this.leadId = leadId;
     this.amount = amount;
     this.status = status;
-    this.createdAt = createdAt;
   }
 
   public void transitionTo(DealStatus newStatus) {
     if (!status.canTransitionTo(newStatus)) {
-      throw new IllegalStateException("Cannot transition from "
-              + status + " to " + newStatus);
+      throw new IllegalStateException("Cannot transition from " + status + " to " + newStatus);
     }
     this.status = newStatus;
   }
@@ -40,20 +62,40 @@ public class Deal {
     return id;
   }
 
+  public void setId(UUID id) {
+    this.id = id;
+  }
+
   public UUID getLeadId() {
     return leadId;
+  }
+
+  public void setLeadId(UUID leadId) {
+    this.leadId = leadId;
   }
 
   public BigDecimal getAmount() {
     return amount;
   }
 
+  public void setAmount(BigDecimal amount) {
+    this.amount = amount;
+  }
+
   public DealStatus getStatus() {
     return status;
   }
 
+  public void setStatus(DealStatus status) {
+    this.status = status;
+  }
+
   public LocalDateTime getCreatedAt() {
     return createdAt;
+  }
+
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
   }
 
   @Override

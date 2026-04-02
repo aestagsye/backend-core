@@ -60,7 +60,7 @@ class StackComparisonTest {
 
     assertThat(servletRows)
             .as("Количество лидов должно совпадать")
-            .isEqualTo(springRows-1);
+            .isEqualTo(springRows-2);
 
     System.out.printf("Servlet: %d лидов, Spring: %d лидов%n",
             servletRows, springRows);

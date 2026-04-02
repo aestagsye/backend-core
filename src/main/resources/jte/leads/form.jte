@@ -55,6 +55,7 @@
                     <option value="NEW" selected="${lead.getStatus() == LeadStatus.NEW}">NEW</option>
                     <option value="CONTACTED" selected="${lead.getStatus() == LeadStatus.CONTACTED}">CONTACTED</option>
                     <option value="QUALIFIED" selected="${lead.getStatus() == LeadStatus.QUALIFIED}">QUALIFIED</option>
+                    <option value="CONVERTED" selected="${lead.getStatus() == LeadStatus.CONVERTED}">CONVERTED</option>
                 </select>
                 @if(errors != null && errors.hasFieldErrors("status"))
                     <p class="text-red-600 text-sm mt-1">${errors.getFieldError("status").getDefaultMessage()}</p>

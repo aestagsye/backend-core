@@ -22,7 +22,7 @@
                     <p class="font-semibold">${deal.getAmount()} ₽</p>
                     <p class="text-sm text-gray-600">Lead: ${deal.getLeadId().toString()}</p>
 
-                    <form method="post" action="/deals/${deal.getId().toString()}/status" class="mt-2">
+                    <form method="post" action="/deals/${deal.getId().toString()}/transition" class="mt-2">
                         <select name="newStatus" class="w-full text-sm border rounded p-1 bg-white">
                             @for(DealStatus target : DealStatus.values())
                                 @if(target != status)

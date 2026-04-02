@@ -17,11 +17,11 @@ class DealTest {
 
     Deal deal = new Deal(leadId, amount);
 
-    assertThat(deal.getId()).isNotNull();
+    assertThat(deal.getId()).isNull();
     assertThat(deal.getLeadId()).isEqualTo(leadId);
     assertThat(deal.getAmount()).isEqualTo(amount);
     assertThat(deal.getStatus()).isEqualTo(DealStatus.NEW);
-    assertThat(deal.getCreatedAt()).isNotNull();
+    assertThat(deal.getCreatedAt()).isNull();
   }
 
   @Test
@@ -43,5 +43,26 @@ class DealTest {
     assertThatThrownBy(() -> deal.transitionTo(DealStatus.NEW))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("Cannot transition from WON to NEW");
+  }
+
+  @Test
+  void shouldSetValues() {
+    //given
+    Deal deal = new Deal(UUID.randomUUID(),UUID.randomUUID(),
+            new BigDecimal(500), DealStatus.WON, LocalDateTime.now());
+    //when
+    UUID id = UUID.randomUUID();
+    UUID leadId = UUID.randomUUID();
+    deal.setId(id);
+    deal.setAmount(new BigDecimal(1000));
+    deal.setLeadId(leadId);
+    deal.setCreatedAt(LocalDateTime.MIN);
+    deal.setStatus(DealStatus.QUALIFIED);
+    //then
+    assertThat(deal.getId()).isEqualTo(id);
+    assertThat(deal.getLeadId()).isEqualTo(leadId);
+    assertThat(deal.getAmount()).isEqualTo(new BigDecimal(1000));
+    assertThat(deal.getCreatedAt()).isEqualTo(LocalDateTime.MIN);
+    assertThat(deal.getStatus()).isEqualTo(DealStatus.QUALIFIED);
   }
 }
