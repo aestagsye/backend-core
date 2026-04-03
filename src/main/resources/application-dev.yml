@@ -1,4 +1,7 @@
 spring:
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
   datasource:
     url: jdbc:postgresql://localhost:5432/crm
     username: postgres
@@ -18,3 +21,8 @@ spring:
   sql:
     init:
       mode: always
+
+logging:
+  level:
+    liquibase: TRACE
+    org.springframework.boot.autoconfigure.liquibase: TRACE

@@ -4,9 +4,8 @@ CREATE TABLE IF NOT EXISTS leads (
     email VARCHAR(255) NOT NULL UNIQUE,
     company VARCHAR(255),
     status VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    created_by UUID,
-    assigned_to UUID
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    version BIGINT NOT NULL DEFAULT 0
 );
 
 -- Индекс для быстрого поиска по email
@@ -38,8 +37,7 @@ CREATE TABLE IF NOT EXISTS deals (
     lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
     amount DECIMAL(15,2) NOT NULL,
     status VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    assigned_to UUID
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Индексы для deals

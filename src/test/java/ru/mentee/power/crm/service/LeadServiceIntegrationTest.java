@@ -289,7 +289,7 @@ class LeadServiceIntegrationTest {
     assertEquals(originalCompany, readValues[0]);
     assertEquals("Updated-In-Second-Tx", readValues[1]);
 
-    leadRepository.delete(lead);
+    leadRepository.deleteById(lead.getId());
   }
   @Test
   void isolation_REPEATABLE_READ_preventsNonRepeatableRead() {
@@ -322,6 +322,6 @@ class LeadServiceIntegrationTest {
     assertEquals(originalCompany, readValues[0]);
     assertEquals(originalCompany, readValues[1]);
 
-    leadRepository.delete(lead);
+    leadRepository.deleteById(lead.getId());
   }
 }

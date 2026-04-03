@@ -27,17 +27,11 @@ class LeadRepositoryTest {
   @BeforeEach
   void setUp() {
     // Подготовка тестовых данных
-    Lead lead1 = new Lead();
-    lead1.setEmail("john@example.com");
-    lead1.setCompany("ACME Corp");
-    lead1.setStatus(LeadStatus.NEW);
+    Lead lead1 = new Lead("john@example.com", "ACME Corp", LeadStatus.NEW);
     lead1.setCreatedAt(LocalDateTime.now().minusDays(5));
     repository.save(lead1);
 
-    Lead lead2 = new Lead();
-    lead2.setEmail("jane@example.com");
-    lead2.setCompany("Tech Inc");
-    lead2.setStatus(LeadStatus.CONTACTED);
+    Lead lead2 = new Lead("jane@example.com", "Tech Inc", LeadStatus.CONTACTED);
     lead2.setCreatedAt(LocalDateTime.now().minusDays(2));
     repository.save(lead2);
   }
