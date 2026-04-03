@@ -36,10 +36,9 @@ class LeadServiceTest {
 
     // Создаём 3 NEW лида
     for (int i = 1; i <= 3; i++) {
-      Lead lead = new Lead();
-      lead.setEmail("lead" + i + "@example.com");
-      lead.setCompany("Company " + i);
-      lead.setStatus(LeadStatus.NEW);
+      Lead lead = new Lead("lead" + i + "@example.com",
+              "Company " + i,
+              LeadStatus.NEW);
       repository.save(lead);
     }
   }
@@ -142,15 +141,19 @@ class LeadServiceTest {
 
   @Test
   void shouldUpdateLead() {
-    service.addLead("dorzh@mail.ru","AcmeCorp",LeadStatus.NEW);
-    UUID uuid = null;
-    if (service.findByEmail("dorzh@mail.ru").isPresent()) {
-      uuid = service.findByEmail("dorzh@mail.ru").get().getId();
-    }
-    Lead updatedLead = new Lead(uuid, "bebra@b.com","EvilCorp",
-            LeadStatus.QUALIFIED, LocalDateTime.now());
-    service.update(uuid, updatedLead);
-    assertThat(service.findByEmail("bebra@b.com")).contains(updatedLead);
+    // given
+    Lead created = service.addLead("dorzh@mail.ru", "AcmeCorp", LeadStatus.NEW);
+    UUID id = created.getId();
+
+    // when
+    Lead existing = service.findById(id).orElseThrow();
+    existing.setEmail("bebra@b.com");
+    existing.setCompany("EvilCorp");
+    existing.setStatus(LeadStatus.QUALIFIED);
+    service.update(id, existing);
+
+    // then
+    assertThat(service.findByEmail("bebra@b.com")).contains(existing);
   }
 
   @Test

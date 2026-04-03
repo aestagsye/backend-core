@@ -113,8 +113,7 @@ public class LeadService {
               + "already exists: " + email);
     }
 
-    Lead lead = new Lead(null, email,
-            company, status, null);
+    Lead lead = new Lead(email, company, status);
     return leadRepository.save(lead);
   }
 
