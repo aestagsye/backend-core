@@ -131,12 +131,18 @@ public class LeadService {
     return leadRepository.findById(id);
   }
 
+  @Transactional
   public Lead update(UUID id, Lead updatedLead) {
-    if (leadRepository.findById(id).isEmpty()) {
-      throw new IllegalStateException("There is no Lead with such id");
-    }
-    leadRepository.save(updatedLead);
-    return updatedLead;
+    Lead existing = leadRepository.findById(id)
+            .orElseThrow(() -> new IllegalStateException("There is no Lead with such id"));
+
+    // Копируем только те поля, которые могут измениться
+    existing.setEmail(updatedLead.getEmail());
+    existing.setCompany(updatedLead.getCompany());
+    existing.setStatus(updatedLead.getStatus());
+    // Поле version обновляется автоматически при сохранении
+
+    return leadRepository.save(existing);
   }
 
   public void delete(UUID id) {
