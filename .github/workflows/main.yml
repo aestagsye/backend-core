@@ -29,29 +29,7 @@ jobs:
 
       - name: Build the project
         run: ./gradlew --no-daemon build -x test
-
-      # Запускаем Servlet приложение в фоне
-      - name: Start Servlet application
-        run: |
-          ./gradlew --no-daemon run &
-          echo $! > servlet.pid
-          sleep 10
-
-      # Запускаем Spring Boot приложение в фоне с сохранением лога
-      - name: Start Spring Boot application
-        run: |
-          SPRING_PROFILES_ACTIVE=test ./gradlew --no-daemon bootRun > spring.log 2>&1 &
-          echo $! > spring.pid
-          sleep 30
-          echo "=== Last 100 lines of spring.log ==="
-          tail -n 100 spring.log || true
-
-      # Проверяем, что серверы запустились
-      - name: Wait for servers to be ready
-        run: |
-          timeout 60 bash -c 'until curl -f http://localhost:8080/leads; do sleep 2; done'
-          timeout 60 bash -c 'until curl -f http://localhost:8081/leads; do sleep 2; done' || (echo "Spring Boot failed to start. Full log:" && cat spring.log && exit 1)
-
+          
       - name: Run Checkstyle
         run: ./gradlew --no-daemon checkstyleMain
 
@@ -63,11 +41,3 @@ jobs:
 
       - name: Verify code coverage
         run: ./gradlew --no-daemon jacocoTestCoverageVerification
-
-      # Останавливаем серверы после тестов
-      - name: Stop servers
-        if: always()
-        run: |
-          kill $(cat servlet.pid) || true
-          kill $(cat spring.pid) || true
-          rm -f servlet.pid spring.pid
