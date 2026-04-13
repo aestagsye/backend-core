@@ -1,13 +1,13 @@
 package ru.mentee.power.crm.repository;
 
+import java.util.Optional;
+import java.util.UUID;
 
-import ru.mentee.power.crm.domain.Company;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import java.util.UUID;
-import java.util.Optional;
+import ru.mentee.power.crm.domain.Company;
 
 public interface CompanyRepository extends JpaRepository<Company, UUID> {
   @EntityGraph(attributePaths = {"leads"})

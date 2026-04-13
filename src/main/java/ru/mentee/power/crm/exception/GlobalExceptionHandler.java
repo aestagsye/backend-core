@@ -12,16 +12,18 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(IllegalLeadStateException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public RedirectView handleIllegalLeadState(IllegalLeadStateException ex, RedirectAttributes redirectAttributes) {
-    String errorMessage = String.format("Невозможно конвертить лид %s. Текущий статус: %s. " +
-            "Лид должен быть в статусе QUALIFIED.", ex.getLeadId(), ex.getCurrentStatus());
+  public RedirectView handleIllegalLeadState(IllegalLeadStateException ex,
+                                             RedirectAttributes redirectAttributes) {
+    String errorMessage = String.format("Невозможно конвертить лид %s. Текущий статус: %s. "
+            + "Лид должен быть в статусе QUALIFIED.", ex.getLeadId(), ex.getCurrentStatus());
     redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
     return new RedirectView("/leads");
   }
 
   @ExceptionHandler(IllegalArgumentException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public RedirectView handleIllegalArgument(IllegalArgumentException ex, RedirectAttributes redirectAttributes) {
+  public RedirectView handleIllegalArgument(IllegalArgumentException ex,
+                                            RedirectAttributes redirectAttributes) {
     redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
     return new RedirectView("/leads");
   }

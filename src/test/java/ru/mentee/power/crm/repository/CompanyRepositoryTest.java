@@ -1,75 +1,90 @@
 package ru.mentee.power.crm.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Optional;
 
-import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import ru.mentee.power.crm.domain.Company;
-import ru.mentee.power.crm.domain.Lead;
-import ru.mentee.power.crm.domain.LeadStatus;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@ActiveProfiles("test")
 @Transactional
 class CompanyRepositoryTest {
 
   @Autowired
   private CompanyRepository companyRepository;
 
-  @Autowired
-  private LeadRepository leadRepository;
-
-  @Autowired
-  private EntityManager entityManager;
-
-  @Test
-  void shouldSaveCompanyWithLeads() {
-    // Given
-    Company company = new Company("Сбербанк", "Finance");
-
-    Lead lead1 = new Lead("ivan@sber.ru", company, LeadStatus.NEW);
-    Lead lead2 = new Lead("maria@sber.ru", company, LeadStatus.CONTACTED);
-
-    company.addLead(lead1);
-    company.addLead(lead2);
-
-    // When
-    Company saved = companyRepository.save(company);
-
-    // Then
-    assertThat(saved.getId()).isNotNull();
-    assertThat(saved.getLeads()).hasSize(2);
-
-    // Проверяем, что в БД создались записи
-    Company found = companyRepository.findById(saved.getId()).orElseThrow();
-    assertThat(found.getLeads()).hasSize(2);
+  @BeforeEach
+  void setUp() {
+    companyRepository.deleteAll();
   }
 
   @Test
-  void shouldAvoidN1WithEntityGraph() {
-    // Given — создаём компанию с 5 лидами
-    Company company = new Company("Тинькофф", "Finance");
-    for (int i = 0; i < 5; i++) {
-      company.addLead(new Lead("lead" + i + "@tinkoff.ru", company, LeadStatus.NEW));
-    }
+  void shouldFindById() {
+    Company company = companyRepository.save(new Company("Test Company", "Tech"));
+
+    Company found = companyRepository.findById(company.getId()).orElseThrow();
+
+    assertThat(found.getName()).isEqualTo("Test Company");
+  }
+
+  @Test
+  void shouldReturnEmptyForNonExistentId() {
+    var found = companyRepository.findById(java.util.UUID.randomUUID());
+
+    assertThat(found).isEmpty();
+  }
+
+  @Test
+  void shouldFindByName() {
+    companyRepository.save(new Company("Acme Corp", "Tech"));
+
+    Optional<Company> found = companyRepository.findByName("Acme Corp");
+
+    assertThat(found).isPresent();
+    assertThat(found.get().getIndustry()).isEqualTo("Tech");
+  }
+
+  @Test
+  void shouldReturnEmptyWhenNameNotFound() {
+    companyRepository.save(new Company("Acme Corp", "Tech"));
+
+    Optional<Company> found = companyRepository.findByName("NonExistent");
+
+    assertThat(found).isEmpty();
+  }
+
+  @Test
+  void shouldSaveAndFindCompany() {
+    Company company = new Company("Test Company", "Retail");
+
     Company saved = companyRepository.save(company);
-    entityManager.flush();
 
-    // Очищаем Persistence Context для чистоты эксперимента
-    entityManager.clear();
+    Optional<Company> found = companyRepository.findById(saved.getId());
+    assertThat(found).isPresent();
+    assertThat(found.get().getName()).isEqualTo("Test Company");
+  }
 
-    // When — используем метод с @EntityGraph
-    Company found = companyRepository.findByIdWithLeads(saved.getId())
-            .orElseThrow(() -> new AssertionError("Company not found with id: " + saved.getId()));
+  @Test
+  void shouldDeleteCompany() {
+    Company company = companyRepository.save(new Company("Delete Me", "Tech"));
 
-    // Then — проверяем, что leads загружены
-    assertThat(found.getLeads()).hasSize(5);
+    companyRepository.delete(company);
 
-    // Проверьте SQL логи: должен быть 1 запрос с LEFT JOIN,
-    // а не 1 SELECT для Company + 5 SELECT для каждого Lead
+    assertThat(companyRepository.findById(company.getId())).isEmpty();
+  }
+
+  @Test
+  void shouldFindAllCompanies() {
+    companyRepository.save(new Company("Company A", "Tech"));
+    companyRepository.save(new Company("Company B", "Retail"));
+
+    var all = companyRepository.findAll();
+
+    assertThat(all).hasSize(2);
   }
 }

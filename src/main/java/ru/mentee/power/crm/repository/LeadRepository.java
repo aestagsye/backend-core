@@ -32,13 +32,11 @@ public interface LeadRepository extends JpaRepository<Lead, UUID> {
 
   List<Lead> findByStatusOrderByCreatedAtDesc(LeadStatus status);
 
-
   @Query("SELECT l FROM Lead l WHERE l.status IN :statuses")
   List<Lead> findByStatusIn(@Param("statuses") List<LeadStatus> statuses);
 
   @Query("SELECT l FROM Lead l WHERE l.createdAt > :date")
   List<Lead> findCreatedAfter(@Param("date") LocalDateTime date);
-
 
   @Query("SELECT l FROM Lead l WHERE l.company.name = :companyName")
   List<Lead> findByCompanyName(@Param("companyName") String companyName);
@@ -52,13 +50,10 @@ public interface LeadRepository extends JpaRepository<Lead, UUID> {
   @Query("SELECT l FROM Lead l WHERE l.status IN :statuses")
   Page<Lead> findByStatusInPaged(@Param("statuses") List<LeadStatus> statuses, Pageable pageable);
 
-
   @Modifying(clearAutomatically = true)
   @Query("UPDATE Lead l SET l.status = :newStatus WHERE l.status = :oldStatus")
-  int updateStatusBulk(
-          @Param("oldStatus") LeadStatus oldStatus,
-          @Param("newStatus") LeadStatus newStatus
-  );
+  int updateStatusBulk(@Param("oldStatus") LeadStatus oldStatus,
+                       @Param("newStatus") LeadStatus newStatus);
 
   @Modifying
   @Query("DELETE FROM Lead l WHERE l.status = :status")

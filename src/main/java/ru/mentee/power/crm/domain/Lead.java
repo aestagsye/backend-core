@@ -3,7 +3,18 @@ package ru.mentee.power.crm.domain;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -51,7 +62,10 @@ public class Lead {
     this.status = status;
   }
 
-  public Lead(UUID uuid, String email, Company company, LeadStatus status, LocalDateTime createdAt) {
+  public Lead(UUID uuid, String email,
+              Company company,
+              LeadStatus status,
+              LocalDateTime createdAt) {
     this.id = uuid;
     this.email = email;
     this.company = company;

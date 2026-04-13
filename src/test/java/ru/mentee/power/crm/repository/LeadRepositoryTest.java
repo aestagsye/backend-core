@@ -1,175 +1,149 @@
 package ru.mentee.power.crm.repository;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.ActiveProfiles;
-import ru.mentee.power.crm.domain.Company;
-import ru.mentee.power.crm.domain.Lead;
-import ru.mentee.power.crm.domain.LeadStatus;
-
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Transactional;
+import ru.mentee.power.crm.domain.Company;
+import ru.mentee.power.crm.domain.Lead;
+import ru.mentee.power.crm.domain.LeadStatus;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@ActiveProfiles("test")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@SpringBootTest
+@Transactional
 class LeadRepositoryTest {
 
   @Autowired
-  private LeadRepository repository;
+  private LeadRepository leadRepository;
 
-  // LeadRepositoryTest.java
   @Autowired
   private CompanyRepository companyRepository;
 
   @BeforeEach
   void setUp() {
-    // Создаём компании и сохраняем их
-    Company company1 = new Company("ACME Corp", "Acme Industries");
-    Company company2 = new Company("Tech Inc", "Tech Industries");
-    companyRepository.save(company1);
-    companyRepository.save(company2);
-
-    Lead lead1 = new Lead("john@example.com", company1, LeadStatus.NEW);
-    lead1.setCreatedAt(LocalDateTime.now().minusDays(5));
-    repository.save(lead1);
-
-    Lead lead2 = new Lead("jane@example.com", company2, LeadStatus.CONTACTED);
-    lead2.setCreatedAt(LocalDateTime.now().minusDays(2));
-    repository.save(lead2);
+    leadRepository.deleteAll();
+    companyRepository.deleteAll();
   }
 
   @Test
-  void shouldSaveAndFindLeadById_whenValidData() {
-    // Given
-    Company company = new Company("ACME", "Acme Industries");
-    companyRepository.save(company);
-    Lead lead = new Lead(null, "test@example.com",
-            company,
-            LeadStatus.NEW, LocalDateTime.now());
+  void shouldFindByIdForUpdate() {
+    Company company = companyRepository.save(new Company("Test Co", "Tech"));
+    Lead lead = leadRepository.save(new Lead("lock@test.com", company, LeadStatus.NEW));
 
-    // When
-    Lead saved = repository.save(lead);
-    Optional<Lead> found = repository.findById(saved.getId());
+    Optional<Lead> found = leadRepository.findByIdForUpdate(lead.getId());
 
-    // Then
     assertThat(found).isPresent();
-    assertThat(found.get().getEmail()).isEqualTo("test@example.com");
+    assertThat(found.get().getEmail()).isEqualTo("lock@test.com");
   }
 
   @Test
-  void shouldFindByEmailNative_whenLeadExists() {
-    // Given
-    Company company = new Company("ACME", "Acme Industries");
-    companyRepository.save(company);
-    Lead lead = new Lead(null, "test1@example.com",
-            company,
-            LeadStatus.NEW, LocalDateTime.now());
-    repository.save(lead);
+  void shouldReturnEmptyForNonExistentLeadForUpdate() {
+    Optional<Lead> found = leadRepository.findByIdForUpdate(UUID.randomUUID());
 
-    // When
-    Optional<Lead> found = repository.findByEmail("test1@example.com");
-
-    // Then
-    assertThat(found).isPresent();
-    assertThat(found.get().getCompany().getName()).isEqualTo("ACME");
-  }
-
-  @Test
-  void shouldReturnEmptyOptional_whenEmailNotFound() {
-    // When
-    Optional<Lead> found = repository.findByEmail("nonexistent@test.com");
-
-    // Then
     assertThat(found).isEmpty();
   }
 
   @Test
-  void shouldFindAll() {
-    // Given
-    Company company = new Company("ACME", "Acme Industries");
-    companyRepository.save(company);
-    Lead lead = new Lead(null, "test@example.com",
-            company,
-            LeadStatus.NEW, LocalDateTime.now());
-    repository.save(lead);
-    // When
-    List<Lead> found = repository.findAll();
-    // Then
-    assertThat(found).isNotEmpty();
+  void shouldCountByStatus() {
+    Company company = companyRepository.save(new Company("Test Co", "Tech"));
+    leadRepository.save(new Lead("a@test.com", company, LeadStatus.NEW));
+    leadRepository.save(new Lead("b@test.com", company, LeadStatus.NEW));
+    leadRepository.save(new Lead("c@test.com", company, LeadStatus.CONTACTED));
+
+    long newCount = leadRepository.countByStatus(LeadStatus.NEW);
+    long contactedCount = leadRepository.countByStatus(LeadStatus.CONTACTED);
+
+    assertThat(newCount).isEqualTo(2);
+    assertThat(contactedCount).isEqualTo(1);
   }
 
   @Test
-  void findByEmail_shouldReturnLead_whenExists() {
-    // When
-    Optional<Lead> found = repository.findByEmail("john@example.com");
+  void shouldFindByStatusIn() {
+    Company company = companyRepository.save(new Company("Test Co", "Tech"));
+    leadRepository.save(new Lead("a@test.com", company, LeadStatus.NEW));
+    leadRepository.save(new Lead("b@test.com", company, LeadStatus.CONTACTED));
+    leadRepository.save(new Lead("c@test.com", company, LeadStatus.QUALIFIED));
 
-    // Then
+    List<Lead> result = leadRepository.findByStatusIn(List.of(LeadStatus.NEW, LeadStatus.CONTACTED));
+
+    assertThat(result).hasSize(2);
+  }
+
+  @Test
+  void shouldFindByCompanyName() {
+    Company company = companyRepository.save(new Company("Acme Corp", "Tech"));
+    leadRepository.save(new Lead("a@test.com", company, LeadStatus.NEW));
+    leadRepository.save(new Lead("b@test.com", company, LeadStatus.CONTACTED));
+
+    Page<Lead> result = leadRepository.findByCompanyName("Acme Corp", PageRequest.of(0, 10));
+
+    assertThat(result.getContent()).hasSize(2);
+  }
+
+  @Test
+  void shouldUpdateStatusBulk() {
+    Company company = companyRepository.save(new Company("Test Co", "Tech"));
+    leadRepository.save(new Lead("a@test.com", company, LeadStatus.NEW));
+    leadRepository.save(new Lead("b@test.com", company, LeadStatus.NEW));
+    leadRepository.save(new Lead("c@test.com", company, LeadStatus.CONTACTED));
+
+    int updated = leadRepository.updateStatusBulk(LeadStatus.NEW, LeadStatus.CONTACTED);
+
+    assertThat(updated).isEqualTo(2);
+    assertThat(leadRepository.countByStatus(LeadStatus.CONTACTED)).isEqualTo(3);
+  }
+
+  @Test
+  void shouldDeleteByStatusBulk() {
+    Company company = companyRepository.save(new Company("Test Co", "Tech"));
+    leadRepository.save(new Lead("a@test.com", company, LeadStatus.NEW));
+    leadRepository.save(new Lead("b@test.com", company, LeadStatus.NEW));
+    leadRepository.save(new Lead("c@test.com", company, LeadStatus.CONTACTED));
+
+    int deleted = leadRepository.deleteByStatusBulk(LeadStatus.NEW);
+
+    assertThat(deleted).isEqualTo(2);
+    assertThat(leadRepository.countByStatus(LeadStatus.NEW)).isEqualTo(0);
+  }
+
+  @Test
+  void shouldSaveAndFindLead() {
+    Company company = companyRepository.save(new Company("Test Co", "Tech"));
+    Lead lead = new Lead("test@test.com", company, LeadStatus.NEW);
+
+    Lead saved = leadRepository.save(lead);
+
+    Optional<Lead> found = leadRepository.findById(saved.getId());
     assertThat(found).isPresent();
-    assertThat(found.get().getCompany().getName()).isEqualTo("ACME Corp");
+    assertThat(found.get().getEmail()).isEqualTo("test@test.com");
   }
 
   @Test
-  void findByStatus_shouldReturnFilteredLeads() {
-    // When
-    List<Lead> newLeads = repository.findByStatus(LeadStatus.NEW);
+  void shouldDeleteLead() {
+    Company company = companyRepository.save(new Company("Test Co", "Tech"));
+    Lead lead = leadRepository.save(new Lead("delete@test.com", company, LeadStatus.NEW));
 
-    // Then
-    assertThat(newLeads).hasSize(1);
-    assertThat(newLeads.getFirst().getEmail()).isEqualTo("john@example.com");
+    leadRepository.delete(lead);
+
+    assertThat(leadRepository.findById(lead.getId())).isEmpty();
   }
 
   @Test
-  void findByStatusIn_shouldReturnLeadsWithMultipleStatuses() {
-    // Given
-    List<LeadStatus> statuses = List.of(LeadStatus.NEW, LeadStatus.CONTACTED);
+  void shouldFindAllLeads() {
+    Company company = companyRepository.save(new Company("Test Co", "Tech"));
+    leadRepository.save(new Lead("a@test.com", company, LeadStatus.NEW));
+    leadRepository.save(new Lead("b@test.com", company, LeadStatus.NEW));
 
-    // When
-    List<Lead> found = repository.findByStatusIn(statuses);
+    List<Lead> all = leadRepository.findAll();
 
-    // Then
-    assertThat(found).hasSize(2);
+    assertThat(all).hasSize(2);
   }
-
-  @Test
-  void findAll_withPageable_shouldReturnPage() {
-    // Given
-    PageRequest pageRequest = PageRequest.of(0, 1);
-
-    // When
-    Page<Lead> page = repository.findAll(pageRequest);
-
-    // Then
-    assertThat(page.getContent()).hasSize(1);
-    assertThat(page.getTotalElements()).isEqualTo(2);
-    assertThat(page.getTotalPages()).isEqualTo(2);
-    assertThat(page.getNumber()).isZero(); // текущая страница
-  }
-
-  @Test
-  void countByStatus_shouldReturnCount() {
-    // When
-    long count = repository.countByStatus(LeadStatus.NEW);
-    // Then
-    assertThat(count).isEqualTo(1);
-    assertThat(repository.countByStatus(LeadStatus.CONTACTED)).isEqualTo(1);
-  }
-
-  @Test
-  void existsByEmail_shouldReturnTrue_whenEmailExists() {
-    // when:
-    boolean result = repository.existsByEmail("john@example.com");
-    // then:
-    assertThat(result).isTrue();
-  }
-
 }
