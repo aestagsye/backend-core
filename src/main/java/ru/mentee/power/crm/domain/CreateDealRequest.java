@@ -13,8 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateDealRequest {
-  @NotNull
-  private String title;
   @Positive
   @NotNull
   private BigDecimal amount;

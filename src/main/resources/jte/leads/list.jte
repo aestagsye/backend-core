@@ -3,10 +3,18 @@
 @param java.util.List<Lead> leads
 @param LeadStatus currentFilter
 @param String search = null
+@param String errorMessage = null
 
 @template.layout.main(content = @`
     <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-2xl font-bold mb-4">Lead List</h2>
+        
+        @if(errorMessage != null)
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 text-red-800 rounded">
+                ${errorMessage}
+            </div>
+        @endif
+        
         <!-- Форма поиска -->
         <div class="bg-white shadow rounded-lg p-4 mb-6">
             <form method="get" action="/leads" class="flex gap-2 items-end">
@@ -81,7 +89,7 @@
                 @for(var lead : leads)
                     <tr class="border-t hover:bg-gray-50">
                         <td class="px-4 py-2">${lead.getEmail()}</td>
-                        <td class="px-4 py-2">${lead.getCompany()}</td>
+                        <td class="px-4 py-2">${lead.getCompany().getName()}</td>
                         <td class="px-4 py-2">
                             @if(lead.getStatus() == LeadStatus.NEW)
                                 <span class="px-2 py-1 rounded text-sm bg-green-100 text-green-800">${lead.getStatus()}</span>
@@ -98,6 +106,12 @@
                                class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
                                 Редактировать
                             </a>
+                            @if(lead.getStatus() == LeadStatus.QUALIFIED)
+                                <a href="/deals/convert/${lead.getId().toString()}"
+                                   class="text-green-600 hover:text-green-800 hover:underline font-medium ml-2">
+                                    Конвертировать
+                                </a>
+                            @endif
                             <form method="post" action="/leads/${lead.getId().toString()}/delete" class="inline">
                                 <button type="submit"
                                         class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"

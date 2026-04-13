@@ -1,6 +1,5 @@
 package ru.mentee.power.crm.service;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -19,15 +18,6 @@ import ru.mentee.power.crm.repository.LeadRepository;
 public class DealService {
   private final DealRepository dealRepository;
   private final LeadRepository leadRepository;
-
-  @Transactional
-  public Deal convertLeadToDeal(UUID leadId, BigDecimal amount) {
-    leadRepository.findById(leadId)
-            .orElseThrow(() -> new IllegalArgumentException("Lead not found: " + leadId));
-    Deal deal = new Deal(leadId, amount);
-    dealRepository.save(deal);
-    return deal;
-  }
 
   @Transactional
   public Deal transitionDealStatus(UUID dealId, DealStatus newStatus) {

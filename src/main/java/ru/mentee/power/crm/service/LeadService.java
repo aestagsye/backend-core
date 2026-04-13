@@ -17,11 +17,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import ru.mentee.power.crm.domain.Company;
 import ru.mentee.power.crm.domain.CreateDealRequest;
 import ru.mentee.power.crm.domain.Deal;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
 import ru.mentee.power.crm.exception.IllegalLeadStateException;
+import ru.mentee.power.crm.repository.CompanyRepository;
 import ru.mentee.power.crm.repository.DealRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
 
@@ -31,7 +33,7 @@ public class LeadService {
 
   private final LeadRepository leadRepository;
   private final DealRepository dealRepository;
-  private LeadProcessor leadProcessor;
+  private final CompanyRepository companyRepository;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LeadService.class);
 
@@ -40,45 +42,31 @@ public class LeadService {
     LOGGER.info("LeadService @PostConstruct init() called - Bean lifecycle phase");
   }
 
-  /**
-   * Поиск лида по email (derived method).
-   */
   public Optional<Lead> findByEmail(String email) {
     return leadRepository.findByEmail(email);
   }
 
-  /**
-   * Поиск лидов по списку статусов (JPQL).
-   */
   public List<Lead> findByStatuses(LeadStatus... statuses) {
     return leadRepository.findByStatusIn(List.of(statuses));
   }
 
-  /**
-   * Получить первую страницу лидов с сортировкой.
-   */
   public Page<Lead> getFirstPage(int pageSize) {
     PageRequest pageRequest = PageRequest.of(
-            0, // первая страница (нумерация с 0)
+            0,
             pageSize,
             Sort.by("createdAt").descending()
     );
     return leadRepository.findAll(pageRequest);
   }
 
-  public Page<Lead> searchByCompany(String company, int page, int size) {
+  public Page<Lead> searchByCompany(String companyName, int page, int size) {
     Pageable pageable = PageRequest.of(page, size);
-    return leadRepository.findByCompany(company, pageable);
+    return leadRepository.findByCompanyName(companyName, pageable);
   }
 
-  /**
-   * Массовое обновление статуса (используется @Modifying метод).
-   * ВАЖНО: @Transactional обязательна для @Modifying!
-   */
   @Transactional
   public int convertNewToContacted() {
     int updated = leadRepository.updateStatusBulk(LeadStatus.NEW, LeadStatus.CONTACTED);
-    // Логируем для observability
     System.out.printf("Converted %d leads from NEW to CONTACTED%n", updated);
     return updated;
   }
@@ -95,7 +83,7 @@ public class LeadService {
                 return true;
               }
               return lead.getEmail().toLowerCase().contains(search.toLowerCase())
-                      || lead.getCompany().toLowerCase().contains(search.toLowerCase());
+                      || lead.getCompany().getName().toLowerCase().contains(search.toLowerCase());
             })
             .filter(lead -> {
               if (status == null) {
@@ -106,14 +94,18 @@ public class LeadService {
             .toList();
   }
 
-  public Lead addLead(String email, String company, LeadStatus status) {
+  @Transactional
+  public Lead addLead(String email, Company company, LeadStatus status) {
     Optional<Lead> existing = leadRepository.findByEmail(email);
     if (existing.isPresent()) {
       throw new IllegalStateException("Lead with email "
               + "already exists: " + email);
     }
 
-    Lead lead = new Lead(email, company, status);
+    Company resolvedCompany = companyRepository.findByName(company.getName())
+            .orElseGet(() -> companyRepository.save(company));
+
+    Lead lead = new Lead(email, resolvedCompany, status);
     return leadRepository.save(lead);
   }
 
@@ -136,11 +128,9 @@ public class LeadService {
     Lead existing = leadRepository.findById(id)
             .orElseThrow(() -> new IllegalStateException("There is no Lead with such id"));
 
-    // Копируем только те поля, которые могут измениться
     existing.setEmail(updatedLead.getEmail());
     existing.setCompany(updatedLead.getCompany());
     existing.setStatus(updatedLead.getStatus());
-    // Поле version обновляется автоматически при сохранении
 
     return leadRepository.save(existing);
   }
@@ -170,7 +160,7 @@ public class LeadService {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void processLeads(List<UUID> ids) {
     for (UUID id : ids) {
-      leadProcessor.processSingleLead(id);
+      this.processSingleLead(id);
     }
   }
 

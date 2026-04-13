@@ -51,9 +51,10 @@ public class DealController {
 
   @PostMapping("/convert")
   public String convertLeadToDeal(@RequestParam UUID leadId, @RequestParam BigDecimal amount) {
-    leadService.convertLeadToDeal(leadId, new CreateDealRequest("DEAL-"
-            + leadService.findById(leadId).get().getCompany() + "-"
-            + amount.toString(), amount, UUID.randomUUID()));
+    Lead found = leadService.findById(leadId)
+            .orElseThrow(() -> new IllegalArgumentException("Lead not found: " + leadId));
+    leadService.convertLeadToDeal(leadId, new CreateDealRequest(amount,
+            found.getCompany().getId()));
     return "redirect:/deals";
   }
 

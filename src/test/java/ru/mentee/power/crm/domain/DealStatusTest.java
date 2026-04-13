@@ -1,32 +1,37 @@
 package ru.mentee.power.crm.domain;
 
-import org.junit.jupiter.api.Test;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DealStatusTest {
 
-  @ParameterizedTest
-  @CsvSource({
-          "NEW, QUALIFIED, true",
-          "NEW, LOST, true",
-          "NEW, WON, false",
-          "QUALIFIED, PROPOSAL_SENT, true",
-          "PROPOSAL_SENT, NEGOTIATION, true",
-          "NEGOTIATION, WON, true",
-          "NEGOTIATION, LOST, true",
-          "WON, NEW, false",
-          "LOST, QUALIFIED, false"
-  })
-  void shouldValidateTransitions(DealStatus from, DealStatus to, boolean expected) {
-    assertThat(from.canTransitionTo(to)).isEqualTo(expected);
+  @ParameterizedTest(name = "{0} -> {1} should be {2}")
+  @MethodSource("provideTransitionCases")
+  void shouldAllowOrDenyTransition(DealStatus from, DealStatus to, boolean shouldAllow) {
+    boolean canTransition = from.canTransitionTo(to);
+
+    assertThat(canTransition).isEqualTo(shouldAllow);
   }
 
-  @Test
-  void terminalStates_shouldNotAllowAnyTransitions() {
-    assertThat(DealStatus.LOST.canTransitionTo(DealStatus.NEW)).isFalse();
-    assertThat(DealStatus.WON.canTransitionTo(DealStatus.NEW)).isFalse();
+  static Stream<Arguments> provideTransitionCases() {
+    return Stream.of(
+            Arguments.of(DealStatus.NEW, DealStatus.QUALIFIED, true),
+            Arguments.of(DealStatus.NEW, DealStatus.LOST, true),
+            Arguments.of(DealStatus.QUALIFIED, DealStatus.PROPOSAL_SENT, true),
+            Arguments.of(DealStatus.QUALIFIED, DealStatus.LOST, true),
+            Arguments.of(DealStatus.PROPOSAL_SENT, DealStatus.NEGOTIATION, true),
+            Arguments.of(DealStatus.PROPOSAL_SENT, DealStatus.LOST, true),
+            Arguments.of(DealStatus.NEGOTIATION, DealStatus.WON, true),
+            Arguments.of(DealStatus.NEGOTIATION, DealStatus.LOST, true),
+            Arguments.of(DealStatus.WON, DealStatus.NEW, false),
+            Arguments.of(DealStatus.LOST, DealStatus.QUALIFIED, false),
+            Arguments.of(DealStatus.NEW, DealStatus.WON, false),
+            Arguments.of(DealStatus.NEW, DealStatus.NEGOTIATION, false)
+    );
   }
 }

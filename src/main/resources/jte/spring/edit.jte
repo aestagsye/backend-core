@@ -33,10 +33,20 @@
                 <label for="company" class="block text-gray-700 text-sm font-semibold mb-2">Компания:</label>
                 <input type="text"
                        id="company"
-                       name="company"
-                       value="${lead.getCompany()}"
+                       name="companyName"
+                       value="${lead.getCompany() != null ? lead.getCompany().getName() : ""}"
                        class="shadow-sm border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                        required>
+            </div>
+
+            <!-- Поле Industry -->
+            <div class="mb-4">
+                <label for="industry" class="block text-gray-700 text-sm font-semibold mb-2">Отрасль:</label>
+                <input type="text"
+                       id="industry"
+                       name="industry"
+                       value="${lead.getCompany() != null ? lead.getCompany().getIndustry() : ""}"
+                       class="shadow-sm border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent">
             </div>
 
             <!-- Поле Status (select) -->

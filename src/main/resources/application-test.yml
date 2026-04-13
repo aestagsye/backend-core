@@ -4,14 +4,14 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
-  sql:
-    init:
-      mode: never
-      schema-locations: classpath:schema.sql
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    drop-first: true
   jpa:
     database: H2
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:

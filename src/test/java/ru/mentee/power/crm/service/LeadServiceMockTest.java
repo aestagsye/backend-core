@@ -15,8 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.mentee.power.crm.domain.Company;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
+import ru.mentee.power.crm.repository.CompanyRepository;
 import ru.mentee.power.crm.repository.DealRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
 
@@ -29,11 +31,14 @@ class LeadServiceMockTest {
   @Mock
   private DealRepository mockRepository1;
 
+  @Mock
+  private CompanyRepository mockCompanyRepository;
+
   private LeadService service;
 
   @BeforeEach
   void setUp() {
-    service = new LeadService(mockRepository, mockRepository1);
+    service = new LeadService(mockRepository, mockRepository1, mockCompanyRepository);
   }
 
   @Test
@@ -41,13 +46,19 @@ class LeadServiceMockTest {
     // Given:
     when(mockRepository.findByEmail(anyString()))
             .thenReturn(Optional.empty());
+    when(mockCompanyRepository.findByName(anyString()))
+            .thenReturn(Optional.empty());
+    when(mockCompanyRepository.save(any(Company.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
     // When:
     when(mockRepository.save(any(Lead.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
 
     // When:
-    Lead result = service.addLead("new@example.com", "Company", LeadStatus.NEW);
+    Lead result = service.addLead("new@example.com",
+            new Company("Company","Industry"),
+            LeadStatus.NEW);
 
     // Then:
     verify(mockRepository, times(1)).save(any(Lead.class));
@@ -62,7 +73,7 @@ class LeadServiceMockTest {
     Lead existingLead = new Lead(
             UUID.randomUUID(),
             "existing@example.com",
-            "Existing Company",
+            new Company("Existing Company","Existing Industry"),
             LeadStatus.CONTACTED,
             LocalDateTime.now()
     );
@@ -71,7 +82,9 @@ class LeadServiceMockTest {
 
     // When/Then:
     assertThatThrownBy(() ->
-            service.addLead("existing@example.com", "New Company", LeadStatus.NEW)
+            service.addLead("existing@example.com",
+                    new Company("New Company","New Industry"),
+                    LeadStatus.NEW)
     ).isInstanceOf(IllegalStateException.class);
 
     // Then:
@@ -83,11 +96,17 @@ class LeadServiceMockTest {
     // Given
     when(mockRepository.findByEmail(anyString()))
             .thenReturn(Optional.empty());
+    when(mockCompanyRepository.findByName(anyString()))
+            .thenReturn(Optional.empty());
+    when(mockCompanyRepository.save(any(Company.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
     when(mockRepository.save(any(Lead.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
 
     // When
-    service.addLead("test@example.com", "Company", LeadStatus.NEW);
+    service.addLead("test@example.com",
+            new Company("Company","Industry"),
+            LeadStatus.NEW);
 
     // Then:
     var inOrder = inOrder(mockRepository);

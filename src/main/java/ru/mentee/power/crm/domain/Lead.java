@@ -7,22 +7,27 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "leads")
-@Data
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
+@Setter
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Lead {
 
@@ -37,25 +42,30 @@ public class Lead {
   @Column(nullable = false)
   private LeadStatus status;
 
-  @Column
-  private String company;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "company_id", nullable = false)
+  @ToString.Exclude
+  private Company company;
 
   @Version
   @Column(name = "version", nullable = false)
-  @Setter(AccessLevel.NONE) // JPA управляет версией сам — НЕ создаём setter
+  @Setter(AccessLevel.NONE)
   private Long version;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
-  public Lead(String email, String company, LeadStatus status) {
+  public Lead(String email, Company company, LeadStatus status) {
     this.email = email;
     this.company = company;
     this.status = status;
   }
 
-  public Lead(UUID uuid, String email, String company, LeadStatus status, LocalDateTime createdAt) {
+  public Lead(UUID uuid, String email,
+              Company company,
+              LeadStatus status,
+              LocalDateTime createdAt) {
     this.id = uuid;
     this.email = email;
     this.company = company;
