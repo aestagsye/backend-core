@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
+import ru.mentee.power.crm.domain.Company;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
 import ru.mentee.power.crm.service.LeadService;
@@ -104,7 +105,10 @@ class LeadControllerTest {
   void shouldShowEditForm() throws Exception {
     // Given
     UUID id = UUID.randomUUID();
-    Lead lead = new Lead(id, "a@a.com", "acme", LeadStatus.NEW, LocalDateTime.now());
+    Lead lead = new Lead(id, "a@a.com",
+            new Company("acme", "acme industry"),
+            LeadStatus.NEW,
+            LocalDateTime.now());
     when(leadService.findById(id)).thenReturn(Optional.of(lead));
 
     // When & Then
@@ -119,13 +123,13 @@ class LeadControllerTest {
   void shouldCreateLeadAndRedirect() throws Exception {
     // Given
     String email = "A@A.COM";
-    String company = "ACME";
+    Company company = new Company("ACME", "acme industry");
     LeadStatus status = LeadStatus.NEW;
 
     // When & Then
     mockMvc.perform(post("/leads")
                     .param("email", email)
-                    .param("company", company)
+                    .param("company", company.getName())
                     .param("status", status.toString()))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/leads"));

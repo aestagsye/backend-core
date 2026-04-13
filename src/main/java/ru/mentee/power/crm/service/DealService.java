@@ -21,15 +21,6 @@ public class DealService {
   private final LeadRepository leadRepository;
 
   @Transactional
-  public Deal convertLeadToDeal(UUID leadId, BigDecimal amount) {
-    leadRepository.findById(leadId)
-            .orElseThrow(() -> new IllegalArgumentException("Lead not found: " + leadId));
-    Deal deal = new Deal(leadId, amount);
-    dealRepository.save(deal);
-    return deal;
-  }
-
-  @Transactional
   public Deal transitionDealStatus(UUID dealId, DealStatus newStatus) {
     Deal deal = dealRepository.findById(dealId)
             .orElseThrow(() -> new IllegalArgumentException("Deal not found: " + dealId));

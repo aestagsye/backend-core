@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.25.xsd">
 
-    <include file="db/changelog/changes/001-create-leads-table.xml"/>
-    <include file="db/changelog/changes/003-add-version-to-leads.xml"/>
-    <include file="db/changelog/changes/004-create-deals-table.xml"/>
+    <include file="changes/001-create-companies-and-leads.xml"/>
+    <include file="changes/002-add-version-to-leads.xml"/>
+    <include file="changes/003-create-deals-table.xml"/>
 
 </databaseChangeLog>

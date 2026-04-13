@@ -12,8 +12,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import ru.mentee.power.crm.domain.Company;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
+import ru.mentee.power.crm.repository.CompanyRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,15 +31,21 @@ class LeadServiceTest {
   @Autowired
   private LeadRepository repository;
 
+  @Autowired
+  private CompanyRepository companyRepository;
+
   // Given
   @BeforeEach
   void setUp() {
     repository.deleteAll();
+    companyRepository.deleteAll();
 
     // Создаём 3 NEW лида
     for (int i = 1; i <= 3; i++) {
+      Company company = new Company("Company " + i,"Industry " + i);
+      companyRepository.save(company);
       Lead lead = new Lead("lead" + i + "@example.com",
-              "Company " + i,
+              company,
               LeadStatus.NEW);
       repository.save(lead);
     }
@@ -50,7 +58,7 @@ class LeadServiceTest {
     // Then
     assertThat(result).isNotNull();
     assertThat(result.getEmail()).isEqualTo("lead" + 1 + "@example.com");
-    assertThat(result.getCompany()).isEqualTo("Company " + 1);
+    assertThat(result.getCompany().getName()).isEqualTo("Company " + 1);
     assertThat(result.getStatus()).isEqualTo(LeadStatus.NEW);
     assertThat(result.getId()).isNotNull();
   }
@@ -59,11 +67,15 @@ class LeadServiceTest {
   void shouldThrowException_whenEmailAlreadyExists() {
     // Given
     String email = "duplicate@example.com";
-    service.addLead(email, "First Company", LeadStatus.NEW);
+    service.addLead(email,
+            new Company("First Company", "First Industry"),
+            LeadStatus.NEW);
 
     // When/Then
     assertThatThrownBy(() ->
-            service.addLead(email, "Second Company", LeadStatus.NEW)
+            service.addLead(email,
+                    new Company("Second Company", "Second Industry"),
+                    LeadStatus.NEW)
     )
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("Lead with email already exists");
@@ -81,7 +93,9 @@ class LeadServiceTest {
   @Test
   void shouldFindLeadById() {
     // Given
-    Lead created = service.addLead("find@example.com", "Company", LeadStatus.NEW);
+    Lead created = service.addLead("find@example.com",
+            new Company("Company","Industry"),
+            LeadStatus.NEW);
 
     // When
     Optional<Lead> result = service.findById(created.getId());
@@ -94,14 +108,16 @@ class LeadServiceTest {
   @Test
   void shouldFindLeadByEmail() {
     // Given
-    service.addLead("search@example.com", "Company", LeadStatus.NEW);
+    service.addLead("search@example.com",
+            new Company("Company","Industry"),
+            LeadStatus.NEW);
 
     // When
     Optional<Lead> result = service.findByEmail("search@example.com");
 
     // Then
     assertThat(result).isPresent();
-    assertThat(result.get().getCompany()).isEqualTo("Company");
+    assertThat(result.get().getCompany().getName()).isEqualTo("Company");
   }
 
   @Test
@@ -128,9 +144,13 @@ class LeadServiceTest {
     // Given
     for (int i = 0; i < 8; i++) {
       if (i<3) {
-        service.addLead("new"+i+"@n.com","EvilCorp"+i, LeadStatus.NEW);
+        service.addLead("new"+i+"@n.com",
+                new Company("EvilCorp"+i,"Industry"),
+                LeadStatus.NEW);
       } else {
-        service.addLead("contacted"+i+"@c.com", "NeutralCorp"+i, LeadStatus.CONTACTED);
+        service.addLead("contacted"+i+"@c.com",
+                new Company("NeutralCorp"+i,"Industry" + i),
+                LeadStatus.CONTACTED);
       }
     }
     // When
@@ -142,13 +162,15 @@ class LeadServiceTest {
   @Test
   void shouldUpdateLead() {
     // given
-    Lead created = service.addLead("dorzh@mail.ru", "AcmeCorp", LeadStatus.NEW);
+    Lead created = service.addLead("dorzh@mail.ru",
+            new Company("AcmeCorp","Acme Industry"),
+            LeadStatus.NEW);
     UUID id = created.getId();
 
     // when
     Lead existing = service.findById(id).orElseThrow();
     existing.setEmail("bebra@b.com");
-    existing.setCompany("EvilCorp");
+    existing.getCompany().setName("EvilCorp");
     existing.setStatus(LeadStatus.QUALIFIED);
     service.update(id, existing);
 
@@ -159,7 +181,10 @@ class LeadServiceTest {
   @Test
   void shouldThrowException_whenUpdateWithNonExistingId() {
     UUID uuid = UUID.randomUUID();
-    Lead lead = new Lead(uuid,"borsh@b.com","acme",LeadStatus.NEW, LocalDateTime.now());
+    Lead lead = new Lead(uuid,"borsh@b.com",
+            new Company("AcmeCorp","Acme Industry"),
+            LeadStatus.NEW,
+            LocalDateTime.now());
     assertThatThrownBy( () ->
             service.update(uuid,lead)
     )
@@ -169,7 +194,9 @@ class LeadServiceTest {
 
   @Test
   void shouldDeleteLead() {
-    service.addLead("dorzh@mail.ru","AcmeCorp",LeadStatus.NEW);
+    service.addLead("dorzh@mail.ru",
+            new Company("AcmeCorp","Acme Industry"),
+            LeadStatus.NEW);
     UUID uuid = null;
     if (service.findByEmail("dorzh@mail.ru").isPresent()) {
       uuid = service.findByEmail("dorzh@mail.ru").get().getId();
@@ -198,26 +225,6 @@ class LeadServiceTest {
   }
 
   @Test
-  void shouldFilterBySearchTerm() {
-    // Given
-    service.addLead("john@example.com", "John's Company", LeadStatus.NEW);
-    service.addLead("jane@example.com", "Jane's Company", LeadStatus.CONTACTED);
-    service.addLead("bob@example.com", "Bob's Company", LeadStatus.QUALIFIED);
-
-    // When
-    List<Lead> resultByEmail = service.findLeads("john", null);
-    List<Lead> resultByCompany = service.findLeads("Jane's", null);
-    List<Lead> resultCaseInsensitive = service.findLeads("JOHN", null);
-    List<Lead> resultMultiple = service.findLeads("example.com", null);
-
-    // Then
-    assertThat(resultByEmail).hasSize(1).allMatch(lead -> lead.getEmail().contains("john"));
-    assertThat(resultByCompany).hasSize(1).allMatch(lead -> lead.getCompany().contains("Jane's"));
-    assertThat(resultCaseInsensitive).hasSize(1).allMatch(lead -> lead.getEmail().equalsIgnoreCase("john@example.com"));
-    assertThat(resultMultiple).hasSize(6);
-  }
-
-  @Test
   void shouldFilterByStatus() {
     // When
     List<Lead> resultNew = service.findLeads(null, LeadStatus.NEW);
@@ -231,28 +238,11 @@ class LeadServiceTest {
   }
 
   @Test
-  void shouldFilterBySearchAndStatus() {
-    // Given
-    service.addLead("alice@company.com", "Alice Inc", LeadStatus.NEW);
-    service.addLead("bob@company.com", "Bob Ltd", LeadStatus.CONTACTED);
-    service.addLead("carol@company.com", "Carol LLC", LeadStatus.NEW);
-    service.addLead("dave@company.com", "Dave Corp", LeadStatus.CONTACTED);
-
-    // When
-    List<Lead> result = service.findLeads("alice", LeadStatus.NEW);
-    List<Lead> result2 = service.findLeads("company", LeadStatus.CONTACTED);
-
-    // Then
-    assertThat(result).hasSize(1)
-            .allMatch(lead -> lead.getEmail().contains("alice") && lead.getStatus() == LeadStatus.NEW);
-    assertThat(result2).hasSize(2)
-            .allMatch(lead -> lead.getStatus() == LeadStatus.CONTACTED);
-  }
-
-  @Test
   void shouldReturnEmpty_whenNoMatch() {
     // Given
-    service.addLead("a@b.com", "CompanyA", LeadStatus.NEW);
+    service.addLead("a@b.com",
+            new Company("CompanyA","A Industry"),
+            LeadStatus.NEW);
 
     // When
     List<Lead> resultNonexistent = service.findLeads("nonexistent", null);

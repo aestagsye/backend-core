@@ -7,8 +7,13 @@
 
         <div class="mb-4 p-3 bg-gray-50 rounded">
             <p><strong>Email:</strong> ${lead.getEmail()}</p>
-            <p><strong>Компания:</strong> ${lead.getCompany()}</p>
+            <p><strong>Компания:</strong> ${lead.getCompany().getName()}</p>
             <p><strong>Статус:</strong> ${lead.getStatus()}</p>
+            @if(lead.getStatus().toString() != "QUALIFIED")
+                <div class="mt-2 p-2 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded text-sm">
+                    ⚠️ Лид должен быть в статусе <strong>QUALIFIED</strong> для конвертации
+                </div>
+            @endif
         </div>
 
         <form method="post" action="/deals/convert" class="space-y-4">

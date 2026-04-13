@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: m-crm
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.xml
   web:
     resources:
       static-locations: classpath:/static/
@@ -29,3 +31,6 @@ logging:
     gg.jte: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
+    liquibase: DEBUG
+    org.liquibase: DEBUG
+    liquibase.integration: DEBUG

@@ -4,8 +4,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import ru.mentee.power.crm.domain.Company;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
+import ru.mentee.power.crm.repository.CompanyRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
 
 import java.util.List;
@@ -23,11 +25,27 @@ class LeadLockingServiceTest {
   @Autowired
   private LeadRepository leadRepository;
 
+  @Autowired
+  private CompanyRepository companyRepository;
+
+  private Company saveCompany(String name, String industry) {
+    Company company = new Company(name, industry);
+    return companyRepository.save(company);
+  }
+
+  private Lead saveLead(String email, Company company, LeadStatus status) {
+    Lead lead = new Lead(email, company, status);
+    return leadRepository.save(lead);
+  }
+
   @Test
   void shouldPreventLostUpdate_whenPessimisticLockUsed() throws Exception {
     // Given: Lead с начальным статусом
-    Lead lead = new Lead("concurrent@test.com", "acme", LeadStatus.NEW);
-    lead = leadRepository.save(lead);
+    leadRepository.deleteAll();
+    companyRepository.deleteAll();
+    
+    Company company = saveCompany("ACME Lock", "Acme Industries");
+    Lead lead = saveLead("concurrent@test.com", company, LeadStatus.NEW);
     UUID leadId = lead.getId();
 
     // When: Два потока одновременно обновляют Lead с pessimistic lock
@@ -71,8 +89,11 @@ class LeadLockingServiceTest {
   @Test
   void shouldThrowOptimisticLockException_whenConcurrentUpdateWithoutLock() throws Exception {
     // Given
-    Lead lead = new Lead("optimistic@test.com", "acme", LeadStatus.NEW);
-    lead = leadRepository.save(lead);
+    leadRepository.deleteAll();
+    companyRepository.deleteAll();
+    
+    Company company = saveCompany("ACME Opt", "Acme Industries");
+    Lead lead = saveLead("optimistic@test.com", company, LeadStatus.NEW);
     UUID leadId = lead.getId();
 
     ExecutorService executor = Executors.newFixedThreadPool(2);
@@ -117,8 +138,14 @@ class LeadLockingServiceTest {
 
   @Test
   void shouldDeadLock() throws Exception {
-    Lead leadA = leadRepository.save(new Lead("a@test.com", "CompanyA", LeadStatus.NEW));
-    Lead leadB = leadRepository.save(new Lead("b@test.com", "CompanyB", LeadStatus.NEW));
+    leadRepository.deleteAll();
+    companyRepository.deleteAll();
+    
+    Company companyA = saveCompany("CompanyA", "A Industries");
+    Company companyB = saveCompany("CompanyB", "B Industries");
+    
+    Lead leadA = saveLead("a@test.com", companyA, LeadStatus.NEW);
+    Lead leadB = saveLead("b@test.com", companyB, LeadStatus.NEW);
 
     List<UUID> order1 = List.of(leadA.getId(), leadB.getId());
     List<UUID> order2 = List.of(leadB.getId(), leadA.getId());

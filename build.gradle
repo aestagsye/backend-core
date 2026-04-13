@@ -85,11 +85,9 @@ dependencies {
 }
 
 jte {
-    sourceDirectory = file("src/main/jte").toPath()
-
+    sourceDirectory = file("src/main/resources/jte").toPath()
     contentType = gg.jte.ContentType.Html
     binaryStaticContent = false
-
     generate()
 }
 
@@ -183,10 +181,6 @@ check {
 
 test {
     useJUnitPlatform()
-}
-
-application {
-    mainClass = 'ru.mentee.power.crm.Main'
 }
 
 bootRun {

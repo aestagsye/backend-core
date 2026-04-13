@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
+import ru.mentee.power.crm.domain.Company;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
+import ru.mentee.power.crm.dto.LeadFormDto;
 import ru.mentee.power.crm.service.LeadService;
 
 @Controller
@@ -47,7 +49,9 @@ public class LeadController {
 
   @GetMapping("/leads/new")
   public String showCreateForm(Model model) {
-    model.addAttribute("lead", new Lead(null, "", "", LeadStatus.NEW, null));
+    LeadFormDto formDto = new LeadFormDto();
+    formDto.setStatus(LeadStatus.NEW);
+    model.addAttribute("formDto", formDto);
     return "leads/create";
   }
 
@@ -62,29 +66,50 @@ public class LeadController {
 
   @PostMapping("/leads/{id}")
   public String update(@PathVariable UUID id,
-                       @Valid @ModelAttribute Lead lead,
-                       BindingResult result,
-                       Model model) {
+                       @Valid @ModelAttribute LeadFormDto formDto,
+                       BindingResult result, Model model) {
     if (result.hasErrors()) {
       model.addAttribute("formAction", "/leads/" + id);
       model.addAttribute("submitButtonText", "Редактировать");
-      model.addAttribute("errors", result);
-      return "leads/form";
+      Company company = null;
+      if (formDto.getCompanyName() != null || formDto.getIndustry() != null) {
+        company = new Company(formDto.getCompanyName(), formDto.getIndustry());
+      }
+      Lead lead = new Lead(formDto.getEmail(), company, formDto.getStatus());
+      model.addAttribute("lead", lead);
+      return "spring/edit";
     }
-    leadService.update(id, lead);
+    Lead existing = leadService.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    existing.setEmail(formDto.getEmail());
+    if (existing.getCompany() != null) {
+      existing.getCompany().setName(formDto.getCompanyName());
+      existing.getCompany().setIndustry(formDto.getIndustry());
+    } else {
+      Company company = new Company(formDto.getCompanyName(), formDto.getIndustry());
+      existing.setCompany(company);
+    }
+    existing.setStatus(formDto.getStatus());
+    leadService.update(id, existing);
     return redirectLeads;
   }
 
   @PostMapping("/leads")
-  public String createLead(@Valid @ModelAttribute Lead lead, BindingResult result,
-                           Model model) {
+  public String createLead(@Valid @ModelAttribute LeadFormDto formDto,
+                           BindingResult result, Model model) {
     if (result.hasErrors()) {
       model.addAttribute("formAction", "/leads");
       model.addAttribute("submitButtonText", "Создать");
-      model.addAttribute("errors", result);
+      Company company = null;
+      if (formDto.getCompanyName() != null || formDto.getIndustry() != null) {
+        company = new Company(formDto.getCompanyName(), formDto.getIndustry());
+      }
+      Lead lead = new Lead(formDto.getEmail(), company, formDto.getStatus());
+      model.addAttribute("lead", lead);
       return "leads/form";
     }
-    leadService.addLead(lead.getEmail(), lead.getCompany(), lead.getStatus());
+    Company company = new Company(formDto.getCompanyName(), formDto.getIndustry());
+    leadService.addLead(formDto.getEmail(), company, formDto.getStatus());
     return redirectLeads;
   }
 

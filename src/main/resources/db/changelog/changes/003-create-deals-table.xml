@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.25.xsd">
 
-    <changeSet id="004-create-deals-table" author="student">
+    <changeSet id="003" author="student">
         <createTable tableName="deals">
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
@@ -24,8 +24,9 @@
             <column name="created_at" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
-            <column name="assigned_to" type="UUID"/>
+            <!-- assigned_to удалён, т.к. не используется в сущности -->
         </createTable>
+
         <createIndex tableName="deals" indexName="idx_deals_lead_id">
             <column name="lead_id"/>
         </createIndex>

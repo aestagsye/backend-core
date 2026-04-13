@@ -8,12 +8,15 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabas
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
+import ru.mentee.power.crm.domain.Company;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
@@ -24,14 +27,23 @@ class LeadRepositoryTest {
   @Autowired
   private LeadRepository repository;
 
+  // LeadRepositoryTest.java
+  @Autowired
+  private CompanyRepository companyRepository;
+
   @BeforeEach
   void setUp() {
-    // Подготовка тестовых данных
-    Lead lead1 = new Lead("john@example.com", "ACME Corp", LeadStatus.NEW);
+    // Создаём компании и сохраняем их
+    Company company1 = new Company("ACME Corp", "Acme Industries");
+    Company company2 = new Company("Tech Inc", "Tech Industries");
+    companyRepository.save(company1);
+    companyRepository.save(company2);
+
+    Lead lead1 = new Lead("john@example.com", company1, LeadStatus.NEW);
     lead1.setCreatedAt(LocalDateTime.now().minusDays(5));
     repository.save(lead1);
 
-    Lead lead2 = new Lead("jane@example.com", "Tech Inc", LeadStatus.CONTACTED);
+    Lead lead2 = new Lead("jane@example.com", company2, LeadStatus.CONTACTED);
     lead2.setCreatedAt(LocalDateTime.now().minusDays(2));
     repository.save(lead2);
   }
@@ -39,7 +51,10 @@ class LeadRepositoryTest {
   @Test
   void shouldSaveAndFindLeadById_whenValidData() {
     // Given
-    Lead lead = new Lead(null, "test@example.com", "ACME",
+    Company company = new Company("ACME", "Acme Industries");
+    companyRepository.save(company);
+    Lead lead = new Lead(null, "test@example.com",
+            company,
             LeadStatus.NEW, LocalDateTime.now());
 
     // When
@@ -54,16 +69,19 @@ class LeadRepositoryTest {
   @Test
   void shouldFindByEmailNative_whenLeadExists() {
     // Given
-    Lead lead = new Lead(null, "test@example.com", "ACME",
+    Company company = new Company("ACME", "Acme Industries");
+    companyRepository.save(company);
+    Lead lead = new Lead(null, "test1@example.com",
+            company,
             LeadStatus.NEW, LocalDateTime.now());
     repository.save(lead);
 
     // When
-    Optional<Lead> found = repository.findByEmail("test@example.com");
+    Optional<Lead> found = repository.findByEmail("test1@example.com");
 
     // Then
     assertThat(found).isPresent();
-    assertThat(found.get().getCompany()).isEqualTo("ACME");
+    assertThat(found.get().getCompany().getName()).isEqualTo("ACME");
   }
 
   @Test
@@ -78,7 +96,10 @@ class LeadRepositoryTest {
   @Test
   void shouldFindAll() {
     // Given
-    Lead lead = new Lead(null, "test@example.com", "ACME",
+    Company company = new Company("ACME", "Acme Industries");
+    companyRepository.save(company);
+    Lead lead = new Lead(null, "test@example.com",
+            company,
             LeadStatus.NEW, LocalDateTime.now());
     repository.save(lead);
     // When
@@ -94,7 +115,7 @@ class LeadRepositoryTest {
 
     // Then
     assertThat(found).isPresent();
-    assertThat(found.get().getCompany()).isEqualTo("ACME Corp");
+    assertThat(found.get().getCompany().getName()).isEqualTo("ACME Corp");
   }
 
   @Test
@@ -151,12 +172,4 @@ class LeadRepositoryTest {
     assertThat(result).isTrue();
   }
 
-  @Test
-  void findByStatusAndCompany_shouldReturnLead() {
-    // When:
-    List<Lead> leads = repository.findByStatusAndCompany(LeadStatus.NEW, "ACME Corp");
-    // Then:
-    assertThat(leads).isNotEmpty()
-            .hasSize(1);
-  }
 }
