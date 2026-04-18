@@ -1,8 +1,8 @@
 spring:
   liquibase:
-    drop-first: true
+    drop-first: false
     enabled: true
-    change-log: classpath:db/changelog/db.changelog-master.xml
+    change-log: classpath:db/changelog/db.changelog-master.yaml
   datasource:
     url: jdbc:postgresql://localhost:5432/crm
     username: postgres

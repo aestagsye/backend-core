@@ -5,7 +5,9 @@ spring:
   application:
     name: m-crm
   liquibase:
-    change-log: classpath:/db/changelog/db.changelog-master.xml
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+    drop-first: false
   web:
     resources:
       static-locations: classpath:/static/
