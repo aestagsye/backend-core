@@ -2,9 +2,12 @@ package ru.mentee.power.crm.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,8 +15,10 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.CreationTimestamp;
+import ru.mentee.power.crm.entity.DealProduct;
 
 @Entity
 @Table(name = "deals")
@@ -36,6 +41,9 @@ public class Deal {
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
+  @OneToMany(mappedBy = "deal", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<DealProduct> dealProducts = new ArrayList<>();
+
   public Deal() {
   }
 
@@ -56,6 +64,15 @@ public class Deal {
       throw new IllegalStateException("Cannot transition from " + status + " to " + newStatus);
     }
     this.status = newStatus;
+  }
+
+  public void addDealProduct(DealProduct dealProduct) {
+    dealProducts.add(dealProduct);
+    dealProduct.setDeal(this);
+  }
+
+  public void removeDealProduct(DealProduct dealProduct) {
+    dealProducts.remove(dealProduct);
   }
 
   public UUID getId() {
@@ -96,6 +113,14 @@ public class Deal {
 
   public void setCreatedAt(LocalDateTime createdAt) {
     this.createdAt = createdAt;
+  }
+
+  public List<DealProduct> getDealProducts() {
+    return dealProducts;
+  }
+
+  public void setDealProducts(List<DealProduct> dealProducts) {
+    this.dealProducts = dealProducts;
   }
 
   @Override
