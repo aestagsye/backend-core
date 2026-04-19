@@ -26,9 +26,18 @@ class ProductRepositoryTest {
     productRepository.deleteAll();
   }
 
+  private static Product newProduct(String name, String sku, BigDecimal price, boolean active) {
+    Product product = new Product();
+    product.setName(name);
+    product.setSku(sku);
+    product.setPrice(price);
+    product.setActive(active);
+    return product;
+  }
+
   @Test
   void shouldSaveAndFindProduct() {
-    Product product = new Product(null, "CRM License", "CRM-001", BigDecimal.valueOf(1999.99), true);
+    Product product = newProduct("CRM License", "CRM-001", BigDecimal.valueOf(1999.99), true);
 
     Product saved = productRepository.save(product);
 
@@ -42,7 +51,7 @@ class ProductRepositoryTest {
 
   @Test
   void shouldFindBySku() {
-    productRepository.save(new Product(null, "Support Plan", "SUP-001", BigDecimal.valueOf(499.00), true));
+    productRepository.save(newProduct("Support Plan", "SUP-001", BigDecimal.valueOf(499.00), true));
 
     Optional<Product> found = productRepository.findBySku("SUP-001");
 
@@ -52,7 +61,7 @@ class ProductRepositoryTest {
 
   @Test
   void shouldReturnEmptyWhenSkuNotFound() {
-    productRepository.save(new Product(null, "Support Plan", "SUP-001", BigDecimal.valueOf(499.00), true));
+    productRepository.save(newProduct("Support Plan", "SUP-001", BigDecimal.valueOf(499.00), true));
 
     Optional<Product> found = productRepository.findBySku("UNKNOWN");
 
@@ -61,9 +70,9 @@ class ProductRepositoryTest {
 
   @Test
   void shouldFindOnlyActiveProducts() {
-    productRepository.save(new Product(null, "Core CRM", "CRM-CORE", BigDecimal.valueOf(999.00), true));
-    productRepository.save(new Product(null, "Legacy Module", "CRM-OLD", BigDecimal.valueOf(299.00), false));
-    productRepository.save(new Product(null, "Analytics Pack", "CRM-ANA", BigDecimal.valueOf(799.00), true));
+    productRepository.save(newProduct("Core CRM", "CRM-CORE", BigDecimal.valueOf(999.00), true));
+    productRepository.save(newProduct("Legacy Module", "CRM-OLD", BigDecimal.valueOf(299.00), false));
+    productRepository.save(newProduct("Analytics Pack", "CRM-ANA", BigDecimal.valueOf(799.00), true));
 
     List<Product> activeProducts = productRepository.findByActiveTrue();
 
@@ -75,9 +84,7 @@ class ProductRepositoryTest {
 
   @Test
   void shouldDeleteProduct() {
-    Product saved = productRepository.save(
-            new Product(null, "Starter", "CRM-START", BigDecimal.valueOf(99.00), true)
-    );
+    Product saved = productRepository.save(newProduct("Starter", "CRM-START", BigDecimal.valueOf(99.00), true));
 
     productRepository.delete(saved);
 
