@@ -1,12 +1,15 @@
 package ru.mentee.power.crm.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,31 +21,21 @@ import ru.mentee.power.crm.domain.Deal;
 import ru.mentee.power.crm.domain.DealStatus;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
-import ru.mentee.power.crm.dto.LeadFormDto;
 import ru.mentee.power.crm.service.DealService;
 import ru.mentee.power.crm.service.LeadService;
 import ru.mentee.power.crm.spring.controller.DealController;
 import ru.mentee.power.crm.spring.controller.LeadController;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 @SpringBootTest
 class ControllerUnitTest {
 
-  @Autowired
-  private LeadController leadController;
+  @Autowired private LeadController leadController;
 
-  @Autowired
-  private DealController dealController;
+  @Autowired private DealController dealController;
 
-  @MockitoBean
-  private LeadService leadService;
+  @MockitoBean private LeadService leadService;
 
-  @MockitoBean
-  private DealService dealService;
+  @MockitoBean private DealService dealService;
 
   @Test
   void shouldReturnHomeMessage() {
@@ -103,7 +96,7 @@ class ControllerUnitTest {
     when(leadService.findById(id)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> leadController.showEditForm(id, new ConcurrentModel()))
-            .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+        .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
   }
 
   @Test
@@ -143,7 +136,8 @@ class ControllerUnitTest {
   void shouldShowConvertForm() {
     UUID leadId = UUID.randomUUID();
     Company company = new Company("Test", "Tech");
-    Lead lead = new Lead(leadId, "test@test.com", company, LeadStatus.QUALIFIED, LocalDateTime.now());
+    Lead lead =
+        new Lead(leadId, "test@test.com", company, LeadStatus.QUALIFIED, LocalDateTime.now());
     when(leadService.findById(leadId)).thenReturn(Optional.of(lead));
 
     ConcurrentModel model = new ConcurrentModel();
@@ -159,7 +153,7 @@ class ControllerUnitTest {
     when(leadService.findById(leadId)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> dealController.showConvertForm(leadId, new ConcurrentModel()))
-            .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+        .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
   }
 
   @Test
@@ -168,7 +162,8 @@ class ControllerUnitTest {
     UUID companyId = UUID.randomUUID();
     Company company = new Company("Test", "Tech");
     company.setId(companyId);
-    Lead lead = new Lead(leadId, "test@test.com", company, LeadStatus.QUALIFIED, LocalDateTime.now());
+    Lead lead =
+        new Lead(leadId, "test@test.com", company, LeadStatus.QUALIFIED, LocalDateTime.now());
     when(leadService.findById(leadId)).thenReturn(Optional.of(lead));
 
     String result = dealController.convertLeadToDeal(leadId, BigDecimal.valueOf(10000));

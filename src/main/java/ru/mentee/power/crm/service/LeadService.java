@@ -1,10 +1,9 @@
 package ru.mentee.power.crm.service;
 
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,11 +50,7 @@ public class LeadService {
   }
 
   public Page<Lead> getFirstPage(int pageSize) {
-    PageRequest pageRequest = PageRequest.of(
-            0,
-            pageSize,
-            Sort.by("createdAt").descending()
-    );
+    PageRequest pageRequest = PageRequest.of(0, pageSize, Sort.by("createdAt").descending());
     return leadRepository.findAll(pageRequest);
   }
 
@@ -78,31 +73,34 @@ public class LeadService {
 
   public List<Lead> findLeads(String search, LeadStatus status) {
     return leadRepository.findAll().stream()
-            .filter(lead -> {
+        .filter(
+            lead -> {
               if (search == null || search.isBlank()) {
                 return true;
               }
               return lead.getEmail().toLowerCase().contains(search.toLowerCase())
-                      || lead.getCompany().getName().toLowerCase().contains(search.toLowerCase());
+                  || lead.getCompany().getName().toLowerCase().contains(search.toLowerCase());
             })
-            .filter(lead -> {
+        .filter(
+            lead -> {
               if (status == null) {
                 return true;
               }
               return lead.getStatus().equals(status);
             })
-            .toList();
+        .toList();
   }
 
   @Transactional
   public Lead addLead(String email, Company company, LeadStatus status) {
     Optional<Lead> existing = leadRepository.findByEmail(email);
     if (existing.isPresent()) {
-      throw new IllegalStateException("Lead with email "
-              + "already exists: " + email);
+      throw new IllegalStateException("Lead with email " + "already exists: " + email);
     }
 
-    Company resolvedCompany = companyRepository.findByName(company.getName())
+    Company resolvedCompany =
+        companyRepository
+            .findByName(company.getName())
             .orElseGet(() -> companyRepository.save(company));
 
     Lead lead = new Lead(email, resolvedCompany, status);
@@ -115,8 +113,8 @@ public class LeadService {
 
   public List<Lead> findByStatus(LeadStatus status) {
     return leadRepository.findAll().stream()
-            .filter(lead -> lead.getStatus().equals(status))
-            .toList();
+        .filter(lead -> lead.getStatus().equals(status))
+        .toList();
   }
 
   public Optional<Lead> findById(UUID id) {
@@ -125,7 +123,9 @@ public class LeadService {
 
   @Transactional
   public Lead update(UUID id, Lead updatedLead) {
-    Lead existing = leadRepository.findById(id)
+    Lead existing =
+        leadRepository
+            .findById(id)
             .orElseThrow(() -> new IllegalStateException("There is no Lead with such id"));
 
     existing.setEmail(updatedLead.getEmail());
@@ -144,7 +144,9 @@ public class LeadService {
 
   @Transactional
   public Deal convertLeadToDeal(UUID leadId, CreateDealRequest request) {
-    Lead found = leadRepository.findById(leadId)
+    Lead found =
+        leadRepository
+            .findById(leadId)
             .orElseThrow(() -> new IllegalArgumentException("Lead not found: " + leadId));
     if (found.getStatus() != LeadStatus.QUALIFIED) {
       throw new IllegalLeadStateException(leadId, found.getStatus());
@@ -166,7 +168,9 @@ public class LeadService {
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void processSingleLead(UUID leadId) {
-    Lead lead = leadRepository.findById(leadId)
+    Lead lead =
+        leadRepository
+            .findById(leadId)
             .orElseThrow(() -> new IllegalArgumentException("Lead not found: " + leadId));
     if (lead.getEmail().contains("throw-exception")) {
       throw new RuntimeException("Simulated error for lead: " + leadId);

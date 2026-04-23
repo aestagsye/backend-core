@@ -2,7 +2,6 @@ package ru.mentee.power.crm.spring.controller;
 
 import java.math.BigDecimal;
 import java.util.UUID;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -43,7 +42,9 @@ public class DealController {
 
   @GetMapping("/convert/{leadId}")
   public String showConvertForm(@PathVariable UUID leadId, Model model) {
-    Lead lead = leadService.findById(leadId)
+    Lead lead =
+        leadService
+            .findById(leadId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lead not found"));
     model.addAttribute("lead", lead);
     return "deals/convert";
@@ -51,10 +52,12 @@ public class DealController {
 
   @PostMapping("/convert")
   public String convertLeadToDeal(@RequestParam UUID leadId, @RequestParam BigDecimal amount) {
-    Lead found = leadService.findById(leadId)
+    Lead found =
+        leadService
+            .findById(leadId)
             .orElseThrow(() -> new IllegalArgumentException("Lead not found: " + leadId));
-    leadService.convertLeadToDeal(leadId, new CreateDealRequest(amount,
-            found.getCompany().getId()));
+    leadService.convertLeadToDeal(
+        leadId, new CreateDealRequest(amount, found.getCompany().getId()));
     return "redirect:/deals";
   }
 

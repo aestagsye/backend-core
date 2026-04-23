@@ -1,14 +1,13 @@
 package ru.mentee.power.crm.exception;
 
-import java.util.UUID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 import ru.mentee.power.crm.domain.LeadStatus;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 class GlobalExceptionHandlerTest {
 
@@ -23,8 +22,8 @@ class GlobalExceptionHandlerTest {
     RedirectView result = handler.handleIllegalLeadState(ex, redirectAttributes);
 
     assertThat(result.getUrl()).isEqualTo("/leads");
-    verify(redirectAttributes).addFlashAttribute(eq("errorMessage"), 
-            contains("Лид должен быть в статусе QUALIFIED"));
+    verify(redirectAttributes)
+        .addFlashAttribute(eq("errorMessage"), contains("Лид должен быть в статусе QUALIFIED"));
   }
 
   @Test

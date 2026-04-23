@@ -180,8 +180,8 @@ jacocoTestCoverageVerification {
 
 spotless {
     java {
-        target 'src⟪§⟫*.java'
-        targetExclude 'build/**'
+        target 'src/**/*.java'    // <-- все .java файлы внутри src и поддиректорий
+        targetExclude 'build/**'  // исключаем сгенерированное/собранное
         googleJavaFormat('1.30.0')
         removeUnusedImports()
         trimTrailingWhitespace()

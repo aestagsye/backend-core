@@ -1,16 +1,16 @@
 package ru.mentee.power.crm.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ru.mentee.power.crm.domain.Company;
@@ -27,30 +27,21 @@ import ru.mentee.power.crm.service.DealService;
 import ru.mentee.power.crm.service.LeadLockingService;
 import ru.mentee.power.crm.service.LeadService;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 @SpringBootTest
 @Transactional
 class FullIntegrationTest {
 
-  @Autowired
-  private LeadService leadService;
+  @Autowired private LeadService leadService;
 
-  @Autowired
-  private DealService dealService;
+  @Autowired private DealService dealService;
 
-  @Autowired
-  private LeadLockingService leadLockingService;
+  @Autowired private LeadLockingService leadLockingService;
 
-  @Autowired
-  private LeadRepository leadRepository;
+  @Autowired private LeadRepository leadRepository;
 
-  @Autowired
-  private DealRepository dealRepository;
+  @Autowired private DealRepository dealRepository;
 
-  @Autowired
-  private CompanyRepository companyRepository;
+  @Autowired private CompanyRepository companyRepository;
 
   @BeforeEach
   void setUp() {
@@ -70,7 +61,9 @@ class FullIntegrationTest {
     lead.setStatus(LeadStatus.QUALIFIED);
     leadRepository.save(lead);
 
-    Deal deal = leadService.convertLeadToDeal(lead.getId(), new CreateDealRequest(BigDecimal.valueOf(50000), company.getId()));
+    Deal deal =
+        leadService.convertLeadToDeal(
+            lead.getId(), new CreateDealRequest(BigDecimal.valueOf(50000), company.getId()));
 
     assertThat(deal).isNotNull();
     assertThat(deal.getAmount()).isEqualByComparingTo(BigDecimal.valueOf(50000));
@@ -84,7 +77,9 @@ class FullIntegrationTest {
   void shouldTransitionDealThroughWorkflow() {
     Company company = companyRepository.save(new Company("Company", "Tech"));
     Lead lead = leadRepository.save(new Lead("lead@test.com", company, LeadStatus.QUALIFIED));
-    Deal deal = leadService.convertLeadToDeal(lead.getId(), new CreateDealRequest(BigDecimal.valueOf(10000), company.getId()));
+    Deal deal =
+        leadService.convertLeadToDeal(
+            lead.getId(), new CreateDealRequest(BigDecimal.valueOf(10000), company.getId()));
 
     Deal qualified = dealService.transitionDealStatus(deal.getId(), DealStatus.QUALIFIED);
     assertThat(qualified.getStatus()).isEqualTo(DealStatus.QUALIFIED);
@@ -103,7 +98,7 @@ class FullIntegrationTest {
   void shouldFilterLeadsBySearchAndStatus() {
     Company company1 = companyRepository.save(new Company("Acme", "Tech"));
     Company company2 = companyRepository.save(new Company("Beta", "Retail"));
-    
+
     leadRepository.save(new Lead("john@acme.com", company1, LeadStatus.NEW));
     leadRepository.save(new Lead("jane@acme.com", company1, LeadStatus.CONTACTED));
     leadRepository.save(new Lead("bob@beta.com", company2, LeadStatus.NEW));
@@ -150,13 +145,20 @@ class FullIntegrationTest {
   void shouldThrowException_whenConvertingInvalidStatus() {
     Company company = companyRepository.save(new Company("Company", "Tech"));
     Lead newLead = leadRepository.save(new Lead("new@test.com", company, LeadStatus.NEW));
-    Lead contactedLead = leadRepository.save(new Lead("contacted@test.com", company, LeadStatus.CONTACTED));
+    Lead contactedLead =
+        leadRepository.save(new Lead("contacted@test.com", company, LeadStatus.CONTACTED));
 
-    assertThatThrownBy(() -> leadService.convertLeadToDeal(newLead.getId(), new CreateDealRequest(BigDecimal.TEN, company.getId())))
-            .isInstanceOf(IllegalLeadStateException.class);
+    assertThatThrownBy(
+            () ->
+                leadService.convertLeadToDeal(
+                    newLead.getId(), new CreateDealRequest(BigDecimal.TEN, company.getId())))
+        .isInstanceOf(IllegalLeadStateException.class);
 
-    assertThatThrownBy(() -> leadService.convertLeadToDeal(contactedLead.getId(), new CreateDealRequest(BigDecimal.TEN, company.getId())))
-            .isInstanceOf(IllegalLeadStateException.class);
+    assertThatThrownBy(
+            () ->
+                leadService.convertLeadToDeal(
+                    contactedLead.getId(), new CreateDealRequest(BigDecimal.TEN, company.getId())))
+        .isInstanceOf(IllegalLeadStateException.class);
   }
 
   @Test
@@ -181,7 +183,7 @@ class FullIntegrationTest {
     Lead nonExistent = new Lead("test@test.com", new Company("Test", "Test"), LeadStatus.NEW);
 
     assertThatThrownBy(() -> leadService.update(UUID.randomUUID(), nonExistent))
-            .isInstanceOf(IllegalStateException.class);
+        .isInstanceOf(IllegalStateException.class);
   }
 
   @Test
@@ -198,8 +200,8 @@ class FullIntegrationTest {
   @Test
   void shouldThrowException_whenDeletingNonExistentLead() {
     assertThatThrownBy(() -> leadService.delete(UUID.randomUUID()))
-            .isInstanceOf(ResponseStatusException.class)
-            .hasMessageContaining("404");
+        .isInstanceOf(ResponseStatusException.class)
+        .hasMessageContaining("404");
   }
 
   @Test
@@ -217,7 +219,8 @@ class FullIntegrationTest {
     Company company = companyRepository.save(new Company("Company", "Tech"));
     Lead lead = leadRepository.save(new Lead("optimistic@test.com", company, LeadStatus.NEW));
 
-    Lead updated = leadLockingService.updateLeadStatusOptimistic(lead.getId(), LeadStatus.CONTACTED);
+    Lead updated =
+        leadLockingService.updateLeadStatusOptimistic(lead.getId(), LeadStatus.CONTACTED);
 
     assertThat(updated.getStatus()).isEqualTo(LeadStatus.CONTACTED);
   }
@@ -228,8 +231,10 @@ class FullIntegrationTest {
     Lead lead1 = leadRepository.save(new Lead("lead1@test.com", company, LeadStatus.QUALIFIED));
     Lead lead2 = leadRepository.save(new Lead("lead2@test.com", company, LeadStatus.QUALIFIED));
 
-    leadService.convertLeadToDeal(lead1.getId(), new CreateDealRequest(BigDecimal.valueOf(10000), company.getId()));
-    leadService.convertLeadToDeal(lead2.getId(), new CreateDealRequest(BigDecimal.valueOf(20000), company.getId()));
+    leadService.convertLeadToDeal(
+        lead1.getId(), new CreateDealRequest(BigDecimal.valueOf(10000), company.getId()));
+    leadService.convertLeadToDeal(
+        lead2.getId(), new CreateDealRequest(BigDecimal.valueOf(20000), company.getId()));
 
     List<Deal> allDeals = dealService.getAllDeals();
     assertThat(allDeals).hasSize(2);
@@ -241,8 +246,12 @@ class FullIntegrationTest {
     Lead lead1 = leadRepository.save(new Lead("lead1@test.com", company, LeadStatus.QUALIFIED));
     Lead lead2 = leadRepository.save(new Lead("lead2@test.com", company, LeadStatus.QUALIFIED));
 
-    Deal deal1 = leadService.convertLeadToDeal(lead1.getId(), new CreateDealRequest(BigDecimal.valueOf(10000), company.getId()));
-    Deal deal2 = leadService.convertLeadToDeal(lead2.getId(), new CreateDealRequest(BigDecimal.valueOf(20000), company.getId()));
+    Deal deal1 =
+        leadService.convertLeadToDeal(
+            lead1.getId(), new CreateDealRequest(BigDecimal.valueOf(10000), company.getId()));
+    Deal deal2 =
+        leadService.convertLeadToDeal(
+            lead2.getId(), new CreateDealRequest(BigDecimal.valueOf(20000), company.getId()));
 
     dealService.transitionDealStatus(deal1.getId(), DealStatus.QUALIFIED);
 
@@ -294,31 +303,34 @@ class FullIntegrationTest {
     Lead lead = leadRepository.save(new Lead("throw-exception@test.com", company, LeadStatus.NEW));
 
     assertThatThrownBy(() -> leadService.processSingleLead(lead.getId()))
-            .isInstanceOf(RuntimeException.class);
+        .isInstanceOf(RuntimeException.class);
   }
 
   @Test
   void shouldThrowException_whenProcessingNonExistentLead() {
     assertThatThrownBy(() -> leadService.processSingleLead(UUID.randomUUID()))
-            .isInstanceOf(IllegalArgumentException.class);
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   void shouldThrowException_whenDealTransitionInvalid() {
     Company company = companyRepository.save(new Company("Company", "Tech"));
     Lead lead = leadRepository.save(new Lead("deal@test.com", company, LeadStatus.QUALIFIED));
-    Deal deal = leadService.convertLeadToDeal(lead.getId(), new CreateDealRequest(BigDecimal.TEN, company.getId()));
+    Deal deal =
+        leadService.convertLeadToDeal(
+            lead.getId(), new CreateDealRequest(BigDecimal.TEN, company.getId()));
 
     dealService.transitionDealStatus(deal.getId(), DealStatus.QUALIFIED);
     dealService.transitionDealStatus(deal.getId(), DealStatus.PROPOSAL_SENT);
 
     assertThatThrownBy(() -> dealService.transitionDealStatus(deal.getId(), DealStatus.NEW))
-            .isInstanceOf(IllegalStateException.class);
+        .isInstanceOf(IllegalStateException.class);
   }
 
   @Test
   void shouldThrowException_whenDealNotFound() {
-    assertThatThrownBy(() -> dealService.transitionDealStatus(UUID.randomUUID(), DealStatus.QUALIFIED))
-            .isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(
+            () -> dealService.transitionDealStatus(UUID.randomUUID(), DealStatus.QUALIFIED))
+        .isInstanceOf(IllegalArgumentException.class);
   }
 }

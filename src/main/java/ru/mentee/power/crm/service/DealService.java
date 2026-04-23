@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +20,9 @@ public class DealService {
 
   @Transactional
   public Deal transitionDealStatus(UUID dealId, DealStatus newStatus) {
-    Deal deal = dealRepository.findById(dealId)
+    Deal deal =
+        dealRepository
+            .findById(dealId)
             .orElseThrow(() -> new IllegalArgumentException("Deal not found: " + dealId));
     deal.transitionTo(newStatus);
     dealRepository.save(deal);
@@ -33,7 +34,6 @@ public class DealService {
   }
 
   public Map<DealStatus, List<Deal>> getDealsByStatusForKanban() {
-    return dealRepository.findAll().stream()
-            .collect(Collectors.groupingBy(Deal::getStatus));
+    return dealRepository.findAll().stream().collect(Collectors.groupingBy(Deal::getStatus));
   }
 }

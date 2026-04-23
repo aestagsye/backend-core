@@ -1,10 +1,9 @@
 package ru.mentee.power.crm.dto;
 
-import org.junit.jupiter.api.Test;
-
-import ru.mentee.power.crm.domain.LeadStatus;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
+import ru.mentee.power.crm.domain.LeadStatus;
 
 class LeadFormDtoTest {
 

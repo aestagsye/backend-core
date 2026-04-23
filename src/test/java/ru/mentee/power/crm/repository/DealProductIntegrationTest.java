@@ -2,10 +2,9 @@ package ru.mentee.power.crm.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.util.UUID;
-
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,20 +21,15 @@ import ru.mentee.power.crm.entity.DealProduct;
 @Transactional
 class DealProductIntegrationTest {
 
-  @Autowired
-  private DealRepository dealRepository;
+  @Autowired private DealRepository dealRepository;
 
-  @Autowired
-  private ProductRepository productRepository;
+  @Autowired private ProductRepository productRepository;
 
-  @Autowired
-  private EntityManager entityManager;
+  @Autowired private EntityManager entityManager;
 
-  @Autowired
-  private LeadRepository leadRepository;
+  @Autowired private LeadRepository leadRepository;
 
-  @Autowired
-  private CompanyRepository companyRepository;
+  @Autowired private CompanyRepository companyRepository;
 
   private Lead qualifiedLead;
 
@@ -47,7 +41,8 @@ class DealProductIntegrationTest {
     companyRepository.deleteAll();
 
     Company company = companyRepository.save(new Company("Test Company", "Tech"));
-    qualifiedLead = leadRepository.save(new Lead("qualified@test.com", company, LeadStatus.QUALIFIED));
+    qualifiedLead =
+        leadRepository.save(new Lead("qualified@test.com", company, LeadStatus.QUALIFIED));
   }
 
   @Test
@@ -82,8 +77,7 @@ class DealProductIntegrationTest {
 
     dealRepository.save(deal);
 
-    Deal loadedDeal =
-        dealRepository.findDealWithProducts(deal.getId()).orElseThrow();
+    Deal loadedDeal = dealRepository.findDealWithProducts(deal.getId()).orElseThrow();
 
     assertThat(loadedDeal.getDealProducts()).hasSize(2);
     assertThat(loadedDeal.getDealProducts())
@@ -161,7 +155,7 @@ class DealProductIntegrationTest {
     assertThat(countWithGraph).isEqualTo(3);
 
     assertThat(dealWithoutGraph.getDealProducts().size())
-            .isEqualTo(dealWithGraph.getDealProducts().size());
+        .isEqualTo(dealWithGraph.getDealProducts().size());
   }
 
   private Product createAndSaveProduct(String name, String sku, BigDecimal price) {

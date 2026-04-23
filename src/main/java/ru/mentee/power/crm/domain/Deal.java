@@ -1,12 +1,5 @@
 package ru.mentee.power.crm.domain;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,6 +10,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
 import ru.mentee.power.crm.entity.DealProduct;
 
@@ -44,8 +43,7 @@ public class Deal {
   @OneToMany(mappedBy = "deal", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<DealProduct> dealProducts = new ArrayList<>();
 
-  public Deal() {
-  }
+  public Deal() {}
 
   public Deal(UUID leadId, BigDecimal amount) {
     this.leadId = Objects.requireNonNull(leadId, "leadId must not be null");

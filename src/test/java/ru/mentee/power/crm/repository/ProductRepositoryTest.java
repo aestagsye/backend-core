@@ -1,10 +1,11 @@
 package ru.mentee.power.crm.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,14 +13,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.mentee.power.crm.domain.Product;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest
 @Transactional
 class ProductRepositoryTest {
 
-  @Autowired
-  private ProductRepository productRepository;
+  @Autowired private ProductRepository productRepository;
 
   @BeforeEach
   void setUp() {
@@ -71,20 +69,23 @@ class ProductRepositoryTest {
   @Test
   void shouldFindOnlyActiveProducts() {
     productRepository.save(newProduct("Core CRM", "CRM-CORE", BigDecimal.valueOf(999.00), true));
-    productRepository.save(newProduct("Legacy Module", "CRM-OLD", BigDecimal.valueOf(299.00), false));
-    productRepository.save(newProduct("Analytics Pack", "CRM-ANA", BigDecimal.valueOf(799.00), true));
+    productRepository.save(
+        newProduct("Legacy Module", "CRM-OLD", BigDecimal.valueOf(299.00), false));
+    productRepository.save(
+        newProduct("Analytics Pack", "CRM-ANA", BigDecimal.valueOf(799.00), true));
 
     List<Product> activeProducts = productRepository.findByActiveTrue();
 
     assertThat(activeProducts).hasSize(2);
     assertThat(activeProducts)
-            .extracting(Product::getSku)
-            .containsExactlyInAnyOrder("CRM-CORE", "CRM-ANA");
+        .extracting(Product::getSku)
+        .containsExactlyInAnyOrder("CRM-CORE", "CRM-ANA");
   }
 
   @Test
   void shouldDeleteProduct() {
-    Product saved = productRepository.save(newProduct("Starter", "CRM-START", BigDecimal.valueOf(99.00), true));
+    Product saved =
+        productRepository.save(newProduct("Starter", "CRM-START", BigDecimal.valueOf(99.00), true));
 
     productRepository.delete(saved);
 
