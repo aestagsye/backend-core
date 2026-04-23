@@ -1,11 +1,10 @@
 package ru.mentee.power.crm.domain;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.math.BigDecimal;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateDealRequestTest {
 

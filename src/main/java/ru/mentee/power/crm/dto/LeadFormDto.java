@@ -8,14 +8,11 @@ import ru.mentee.power.crm.domain.LeadStatus;
 
 @Data
 public class LeadFormDto {
-  @NotBlank @Email
-  private String email;
+  @NotBlank @Email private String email;
 
-  @NotBlank
-  private String companyName;
+  @NotBlank private String companyName;
 
   private String industry;
 
-  @NotNull
-  private LeadStatus status;
+  @NotNull private LeadStatus status;
 }

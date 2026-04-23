@@ -1,9 +1,10 @@
 package ru.mentee.power.crm.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,17 +16,13 @@ import ru.mentee.power.crm.domain.Company;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest
 @Transactional
 class LeadRepositoryTest {
 
-  @Autowired
-  private LeadRepository leadRepository;
+  @Autowired private LeadRepository leadRepository;
 
-  @Autowired
-  private CompanyRepository companyRepository;
+  @Autowired private CompanyRepository companyRepository;
 
   @BeforeEach
   void setUp() {
@@ -72,7 +69,8 @@ class LeadRepositoryTest {
     leadRepository.save(new Lead("b@test.com", company, LeadStatus.CONTACTED));
     leadRepository.save(new Lead("c@test.com", company, LeadStatus.QUALIFIED));
 
-    List<Lead> result = leadRepository.findByStatusIn(List.of(LeadStatus.NEW, LeadStatus.CONTACTED));
+    List<Lead> result =
+        leadRepository.findByStatusIn(List.of(LeadStatus.NEW, LeadStatus.CONTACTED));
 
     assertThat(result).hasSize(2);
   }

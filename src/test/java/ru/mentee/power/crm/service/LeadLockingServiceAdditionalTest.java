@@ -1,8 +1,10 @@
 package ru.mentee.power.crm.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import java.util.List;
 import java.util.UUID;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,21 +16,15 @@ import ru.mentee.power.crm.domain.LeadStatus;
 import ru.mentee.power.crm.repository.CompanyRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 @SpringBootTest
 @Transactional
 class LeadLockingServiceAdditionalTest {
 
-  @Autowired
-  private LeadLockingService leadLockingService;
+  @Autowired private LeadLockingService leadLockingService;
 
-  @Autowired
-  private LeadRepository leadRepository;
+  @Autowired private LeadRepository leadRepository;
 
-  @Autowired
-  private CompanyRepository companyRepository;
+  @Autowired private CompanyRepository companyRepository;
 
   @BeforeEach
   void setUp() {
@@ -48,9 +44,12 @@ class LeadLockingServiceAdditionalTest {
 
   @Test
   void shouldThrowException_whenLeadNotFoundForPessimisticLock() {
-    assertThatThrownBy(() -> leadLockingService.convertLeadToDealWithLock(UUID.randomUUID(), LeadStatus.QUALIFIED))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Lead not found");
+    assertThatThrownBy(
+            () ->
+                leadLockingService.convertLeadToDealWithLock(
+                    UUID.randomUUID(), LeadStatus.QUALIFIED))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Lead not found");
   }
 
   @Test
@@ -58,16 +57,20 @@ class LeadLockingServiceAdditionalTest {
     Company company = companyRepository.save(new Company("Test Co", "Tech"));
     Lead lead = leadRepository.save(new Lead("optimistic@test.com", company, LeadStatus.NEW));
 
-    Lead updated = leadLockingService.updateLeadStatusOptimistic(lead.getId(), LeadStatus.CONTACTED);
+    Lead updated =
+        leadLockingService.updateLeadStatusOptimistic(lead.getId(), LeadStatus.CONTACTED);
 
     assertThat(updated.getStatus()).isEqualTo(LeadStatus.CONTACTED);
   }
 
   @Test
   void shouldThrowException_whenLeadNotFoundForOptimisticUpdate() {
-    assertThatThrownBy(() -> leadLockingService.updateLeadStatusOptimistic(UUID.randomUUID(), LeadStatus.CONTACTED))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Lead not found");
+    assertThatThrownBy(
+            () ->
+                leadLockingService.updateLeadStatusOptimistic(
+                    UUID.randomUUID(), LeadStatus.CONTACTED))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Lead not found");
   }
 
   @Test
@@ -97,7 +100,7 @@ class LeadLockingServiceAdditionalTest {
   @Test
   void shouldThrowException_whenProcessingNonExistentLeadInOrder() {
     assertThatThrownBy(() -> leadLockingService.processLeadsInOrder(List.of(UUID.randomUUID())))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Lead not found");
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Lead not found");
   }
 }

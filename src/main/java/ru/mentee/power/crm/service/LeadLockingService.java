@@ -1,9 +1,8 @@
 package ru.mentee.power.crm.service;
 
+import jakarta.persistence.OptimisticLockException;
 import java.util.List;
 import java.util.UUID;
-
-import jakarta.persistence.OptimisticLockException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.mentee.power.crm.domain.Lead;
@@ -21,7 +20,9 @@ public class LeadLockingService {
 
   @Transactional
   public Lead convertLeadToDealWithLock(UUID leadId, LeadStatus newStatus) {
-    Lead lead = leadRepository.findByIdForUpdate(leadId)
+    Lead lead =
+        leadRepository
+            .findByIdForUpdate(leadId)
             .orElseThrow(() -> new IllegalArgumentException("Lead not found: " + leadId));
 
     lead.setStatus(newStatus);
@@ -30,7 +31,9 @@ public class LeadLockingService {
 
   @Transactional
   public Lead updateLeadStatusOptimistic(UUID leadId, LeadStatus newStatus) {
-    Lead lead = leadRepository.findById(leadId)
+    Lead lead =
+        leadRepository
+            .findById(leadId)
             .orElseThrow(() -> new IllegalArgumentException("Lead not found: " + leadId));
 
     lead.setStatus(newStatus);
@@ -49,7 +52,9 @@ public class LeadLockingService {
   @Transactional
   public void processLeadsInOrder(List<UUID> ids) {
     for (UUID id : ids) {
-      Lead lead = leadRepository.findByIdForUpdate(id)
+      Lead lead =
+          leadRepository
+              .findByIdForUpdate(id)
               .orElseThrow(() -> new IllegalArgumentException("Lead not found: " + id));
       lead.setStatus(LeadStatus.CONTACTED);
       leadRepository.save(lead);

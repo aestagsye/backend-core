@@ -1,5 +1,10 @@
 package ru.mentee.power.crm.service;
 
+import static org.assertj.core.api.Assertions.*;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,23 +15,14 @@ import ru.mentee.power.crm.domain.LeadStatus;
 import ru.mentee.power.crm.repository.CompanyRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.*;
-
-import static org.assertj.core.api.Assertions.*;
-
 @SpringBootTest
 class LeadLockingServiceTest {
 
-  @Autowired
-  private LeadLockingService leadLockingService;
+  @Autowired private LeadLockingService leadLockingService;
 
-  @Autowired
-  private LeadRepository leadRepository;
+  @Autowired private LeadRepository leadRepository;
 
-  @Autowired
-  private CompanyRepository companyRepository;
+  @Autowired private CompanyRepository companyRepository;
 
   private Company saveCompany(String name, String industry) {
     Company company = new Company(name, industry);
@@ -43,7 +39,7 @@ class LeadLockingServiceTest {
     // Given: Lead с начальным статусом
     leadRepository.deleteAll();
     companyRepository.deleteAll();
-    
+
     Company company = saveCompany("ACME Lock", "Acme Industries");
     Lead lead = saveLead("concurrent@test.com", company, LeadStatus.NEW);
     UUID leadId = lead.getId();
@@ -54,19 +50,25 @@ class LeadLockingServiceTest {
     CountDownLatch startLatch = new CountDownLatch(1);
     CountDownLatch doneLatch = new CountDownLatch(2);
 
-    Future<LeadStatus> task1 = executor.submit(() -> {
-      startLatch.await(); // Синхронизируем старт
-      Lead updated = leadLockingService.convertLeadToDealWithLock(leadId, LeadStatus.CONTACTED);
-      doneLatch.countDown();
-      return updated.getStatus();
-    });
+    Future<LeadStatus> task1 =
+        executor.submit(
+            () -> {
+              startLatch.await(); // Синхронизируем старт
+              Lead updated =
+                  leadLockingService.convertLeadToDealWithLock(leadId, LeadStatus.CONTACTED);
+              doneLatch.countDown();
+              return updated.getStatus();
+            });
 
-    Future<LeadStatus> task2 = executor.submit(() -> {
-      startLatch.await();
-      Lead updated = leadLockingService.convertLeadToDealWithLock(leadId, LeadStatus.QUALIFIED);
-      doneLatch.countDown();
-      return updated.getStatus();
-    });
+    Future<LeadStatus> task2 =
+        executor.submit(
+            () -> {
+              startLatch.await();
+              Lead updated =
+                  leadLockingService.convertLeadToDealWithLock(leadId, LeadStatus.QUALIFIED);
+              doneLatch.countDown();
+              return updated.getStatus();
+            });
 
     startLatch.countDown(); // Запускаем оба потока одновременно
     doneLatch.await(10, TimeUnit.SECONDS); // Ждём завершения
@@ -91,35 +93,39 @@ class LeadLockingServiceTest {
     // Given
     leadRepository.deleteAll();
     companyRepository.deleteAll();
-    
+
     Company company = saveCompany("ACME Opt", "Acme Industries");
     Lead lead = saveLead("optimistic@test.com", company, LeadStatus.NEW);
     UUID leadId = lead.getId();
 
     ExecutorService executor = Executors.newFixedThreadPool(2);
 
-    CountDownLatch readyLatch = new CountDownLatch(2);   // оба потока готовы
-    CountDownLatch startLatch = new CountDownLatch(1);   // одновременный старт
-    CountDownLatch doneLatch = new CountDownLatch(2);    // оба завершили
+    CountDownLatch readyLatch = new CountDownLatch(2); // оба потока готовы
+    CountDownLatch startLatch = new CountDownLatch(1); // одновременный старт
+    CountDownLatch doneLatch = new CountDownLatch(2); // оба завершили
 
-    Future<?> task1 = executor.submit(() -> {
-      readyLatch.countDown();
-      startLatch.await();          // ждём сигнала
-      leadLockingService.updateLeadStatusOptimistic(leadId, LeadStatus.CONTACTED);
-      doneLatch.countDown();
-      return null;
-    });
+    Future<?> task1 =
+        executor.submit(
+            () -> {
+              readyLatch.countDown();
+              startLatch.await(); // ждём сигнала
+              leadLockingService.updateLeadStatusOptimistic(leadId, LeadStatus.CONTACTED);
+              doneLatch.countDown();
+              return null;
+            });
 
-    Future<?> task2 = executor.submit(() -> {
-      readyLatch.countDown();
-      startLatch.await();
-      leadLockingService.updateLeadStatusOptimistic(leadId, LeadStatus.QUALIFIED);
-      doneLatch.countDown();
-      return null;
-    });
+    Future<?> task2 =
+        executor.submit(
+            () -> {
+              readyLatch.countDown();
+              startLatch.await();
+              leadLockingService.updateLeadStatusOptimistic(leadId, LeadStatus.QUALIFIED);
+              doneLatch.countDown();
+              return null;
+            });
 
-    readyLatch.await();              // убеждаемся, что оба потока готовы
-    startLatch.countDown();          // даём команду на старт
+    readyLatch.await(); // убеждаемся, что оба потока готовы
+    startLatch.countDown(); // даём команду на старт
     doneLatch.await(5, TimeUnit.SECONDS);
 
     boolean exceptionThrown = false;
@@ -127,8 +133,7 @@ class LeadLockingServiceTest {
       task1.get();
       task2.get();
     } catch (ExecutionException e) {
-      assertThat(e.getCause())
-              .isInstanceOf(ObjectOptimisticLockingFailureException.class);
+      assertThat(e.getCause()).isInstanceOf(ObjectOptimisticLockingFailureException.class);
       exceptionThrown = true;
     }
 
@@ -140,10 +145,10 @@ class LeadLockingServiceTest {
   void shouldDeadLock() throws Exception {
     leadRepository.deleteAll();
     companyRepository.deleteAll();
-    
+
     Company companyA = saveCompany("CompanyA", "A Industries");
     Company companyB = saveCompany("CompanyB", "B Industries");
-    
+
     Lead leadA = saveLead("a@test.com", companyA, LeadStatus.NEW);
     Lead leadB = saveLead("b@test.com", companyB, LeadStatus.NEW);
 
@@ -153,22 +158,26 @@ class LeadLockingServiceTest {
     ExecutorService executor = Executors.newFixedThreadPool(2);
     CountDownLatch startLatch = new CountDownLatch(1);
 
-    Future<?> task1 = executor.submit(() -> {
-      try {
-        startLatch.await();
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-      leadLockingService.processLeadsInOrder(order1);
-    });
-    Future<?> task2 = executor.submit(() -> {
-      try {
-        startLatch.await();
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-      leadLockingService.processLeadsInOrder(order2);
-    });
+    Future<?> task1 =
+        executor.submit(
+            () -> {
+              try {
+                startLatch.await();
+              } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+              }
+              leadLockingService.processLeadsInOrder(order1);
+            });
+    Future<?> task2 =
+        executor.submit(
+            () -> {
+              try {
+                startLatch.await();
+              } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+              }
+              leadLockingService.processLeadsInOrder(order2);
+            });
 
     startLatch.countDown();
     boolean deadlockDetected = false;
