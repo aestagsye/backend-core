@@ -27,9 +27,9 @@ jobs:
           java-version: '25'
           cache: 'gradle'
 
-      - name: Build the project
-        run: ./gradlew --no-daemon build -x test
-          
+      - name: Check code formatting (Spotless)
+        run: ./gradlew --no-daemon spotlessCheck
+
       - name: Run Checkstyle
         run: ./gradlew --no-daemon checkstyleMain
 
@@ -41,3 +41,6 @@ jobs:
 
       - name: Verify code coverage
         run: ./gradlew --no-daemon jacocoTestCoverageVerification
+
+      - name: Build the project
+        run: ./gradlew --no-daemon build -x test
