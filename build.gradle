@@ -125,7 +125,8 @@ test {
 
 // Настройка JaCoCo отчёта
 jacocoTestReport {
-    dependsOn test  // отчёт генерируется после выполнения тестов
+    dependsOn test
+    dependsOn compileJava, processResources, generateJte
     reports {
         xml.required = false
         csv.required = false
