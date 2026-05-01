@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -25,6 +26,7 @@ import ru.mentee.power.crm.exception.IllegalLeadStateException;
 import ru.mentee.power.crm.repository.CompanyRepository;
 import ru.mentee.power.crm.repository.DealRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
+import ru.mentee.power.crm.repository.LeadSpecifications;
 
 @Service
 @RequiredArgsConstructor
@@ -72,23 +74,17 @@ public class LeadService {
   }
 
   public List<Lead> findLeads(String search, LeadStatus status) {
-    return leadRepository.findAll().stream()
-        .filter(
-            lead -> {
-              if (search == null || search.isBlank()) {
-                return true;
-              }
-              return lead.getEmail().toLowerCase().contains(search.toLowerCase())
-                  || lead.getCompany().getName().toLowerCase().contains(search.toLowerCase());
-            })
-        .filter(
-            lead -> {
-              if (status == null) {
-                return true;
-              }
-              return lead.getStatus().equals(status);
-            })
-        .toList();
+    Specification<Lead> spec = Specification.unrestricted();
+
+    if (search != null && !search.isBlank()) {
+      spec = spec.and(LeadSpecifications.emailOrCompanyNameContainsIgnoreCase(search));
+    }
+
+    if (status != null) {
+      spec = spec.and(LeadSpecifications.hasStatus(status));
+    }
+
+    return leadRepository.findAll(spec);
   }
 
   @Transactional
@@ -112,9 +108,7 @@ public class LeadService {
   }
 
   public List<Lead> findByStatus(LeadStatus status) {
-    return leadRepository.findAll().stream()
-        .filter(lead -> lead.getStatus().equals(status))
-        .toList();
+    return leadRepository.findByStatus(status);
   }
 
   public Optional<Lead> findById(UUID id) {
@@ -177,5 +171,24 @@ public class LeadService {
     }
     lead.setStatus(LeadStatus.CONTACTED);
     leadRepository.save(lead);
+  }
+
+  public List<Lead> findByStatusAndEmailAndCompanyDynamic(
+      LeadStatus status, String email, String companyName) {
+    Specification<Lead> spec = Specification.unrestricted();
+
+    if (status != null) {
+      spec = spec.and(LeadSpecifications.hasStatus(status));
+    }
+
+    if (email != null && !email.isBlank()) {
+      spec = spec.and(LeadSpecifications.emailContainsIgnoreCase(email));
+    }
+
+    if (companyName != null && !companyName.isBlank()) {
+      spec = spec.and(LeadSpecifications.companyNameContainsIgnoreCase(companyName));
+    }
+
+    return leadRepository.findAll(spec);
   }
 }
