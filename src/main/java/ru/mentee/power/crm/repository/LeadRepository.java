@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,7 +18,7 @@ import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
 
 @Repository
-public interface LeadRepository extends JpaRepository<Lead, UUID> {
+public interface LeadRepository extends JpaRepository<Lead, UUID>, JpaSpecificationExecutor<Lead> {
 
   Optional<Lead> findByEmail(String email);
 
