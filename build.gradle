@@ -50,6 +50,7 @@ dependencies {
     testImplementation "org.springframework.boot:spring-boot-starter-webmvc:${springBootVersion}"
     testImplementation "org.springframework.boot:spring-boot-starter-data-jpa"
     testImplementation 'org.hsqldb:hsqldb:2.7.2'
+    testImplementation("org.wiremock:wiremock-standalone:3.13.0")
 
     // Validation dependency
     implementation "jakarta.validation:jakarta.validation-api:${validationApiVersion}"

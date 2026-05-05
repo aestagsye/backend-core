@@ -20,3 +20,7 @@ spring:
   h2:
     console:
       enabled: true
+
+email:
+  validation:
+    base-url: http://localhost:8089

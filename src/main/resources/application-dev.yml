@@ -19,7 +19,19 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      indent-output: true
+    deserialization:
+      fail-on-unknown-properties: false
+
 logging:
   level:
     liquibase: TRACE
     org.springframework.boot.autoconfigure.liquibase: TRACE
+
+# Внешние API
+email:
+  validation:
+    base-url: ${EMAIL_VALIDATION_URL:http://localhost:8089}
