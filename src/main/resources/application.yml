@@ -26,6 +26,10 @@ gg:
     contentType: Html
     templateLocation: src/main/resources/jte
 
+email:
+  validation:
+    base-url: ${EMAIL_VALIDATION_URL:http://localhost:8089}
+
 logging:
   level:
     org.springframework.web: DEBUG
