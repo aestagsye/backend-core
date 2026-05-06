@@ -1,5 +1,6 @@
 package ru.mentee.power.crm.service;
 
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
@@ -27,20 +28,22 @@ import ru.mentee.power.crm.repository.CompanyRepository;
 import ru.mentee.power.crm.repository.DealRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
 import ru.mentee.power.crm.repository.LeadSpecifications;
+import ru.mentee.power.crm.spring.client.EmailValidationFeignClient;
+import ru.mentee.power.crm.spring.client.EmailValidationResponse;
 
 @Service
 @RequiredArgsConstructor
 public class LeadService {
+  private static final Logger log = LoggerFactory.getLogger(LeadService.class);
 
   private final LeadRepository leadRepository;
   private final DealRepository dealRepository;
   private final CompanyRepository companyRepository;
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(LeadService.class);
+  private final EmailValidationFeignClient emailValidationClient;
 
   @PostConstruct
   void init() {
-    LOGGER.info("LeadService @PostConstruct init() called - Bean lifecycle phase");
+    log.info("LeadService @PostConstruct init() called - Bean lifecycle phase");
   }
 
   public Optional<Lead> findByEmail(String email) {
@@ -103,6 +106,22 @@ public class LeadService {
     return leadRepository.save(lead);
   }
 
+  @Retry(name = "email-validation", fallbackMethod = "createLeadFallback")
+  @Transactional
+  public Lead createLead(String email, Company company, LeadStatus status) {
+    EmailValidationResponse validation = emailValidationClient.validateEmail(email);
+    if (!validation.valid()) {
+      throw new IllegalArgumentException("Invalid email: " + validation.reason());
+    }
+    Company resolvedCompany =
+        companyRepository
+            .findByName(company.getName())
+            .orElseGet(() -> companyRepository.save(company));
+
+    Lead lead = new Lead(email, resolvedCompany, status);
+    return leadRepository.save(lead);
+  }
+
   public List<Lead> findAll() {
     return leadRepository.findAll();
   }
@@ -129,11 +148,40 @@ public class LeadService {
     return leadRepository.save(existing);
   }
 
+  @Transactional
+  public Optional<Lead> updateLead(UUID id, Lead updatedLead) {
+    return leadRepository
+        .findById(id)
+        .map(
+            existing -> {
+              existing.setEmail(updatedLead.getEmail());
+              existing.setCompany(resolveCompany(updatedLead.getCompany()));
+              existing.setStatus(updatedLead.getStatus());
+              return leadRepository.save(existing);
+            });
+  }
+
+  private Company resolveCompany(Company company) {
+    return companyRepository
+        .findByName(company.getName())
+        .orElseGet(() -> companyRepository.save(company));
+  }
+
+  @Transactional
   public void delete(UUID id) {
     if (findById(id).isEmpty()) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
     leadRepository.deleteById(id);
+  }
+
+  @Transactional
+  public boolean deleteLead(UUID id) {
+    if (findById(id).isEmpty()) {
+      return false;
+    }
+    leadRepository.deleteById(id);
+    return true;
   }
 
   @Transactional
@@ -190,5 +238,19 @@ public class LeadService {
     }
 
     return leadRepository.findAll(spec);
+  }
+
+  // Fallback метод — вызывается после исчерпания retry попыток
+  public Lead createLeadFallback(Lead lead, Exception ex) {
+    log.warn(
+        "Email validation service unavailable after retries. "
+            + "Creating lead without validation. Error: {}",
+        ex.getMessage());
+
+    // Graceful degradation: создаём лида без валидации
+    // В production можно: 1) пометить для последующей проверки
+    //                     2) отправить в очередь на валидацию
+    //                     3) отклонить запрос (throw new ServiceUnavailableException)
+    return leadRepository.save(lead);
   }
 }

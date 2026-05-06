@@ -20,6 +20,7 @@ import ru.mentee.power.crm.domain.LeadStatus;
 import ru.mentee.power.crm.repository.CompanyRepository;
 import ru.mentee.power.crm.repository.DealRepository;
 import ru.mentee.power.crm.repository.LeadRepository;
+import ru.mentee.power.crm.spring.client.EmailValidationFeignClient;
 
 @ExtendWith(MockitoExtension.class)
 class LeadServiceMockTest {
@@ -30,11 +31,15 @@ class LeadServiceMockTest {
 
   @Mock private CompanyRepository mockCompanyRepository;
 
+  @Mock private EmailValidationFeignClient mockEmailValidationClient;
+
   private LeadService service;
 
   @BeforeEach
   void setUp() {
-    service = new LeadService(mockRepository, mockRepository1, mockCompanyRepository);
+    service =
+        new LeadService(
+            mockRepository, mockRepository1, mockCompanyRepository, mockEmailValidationClient);
   }
 
   @Test
