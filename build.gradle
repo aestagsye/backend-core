@@ -15,6 +15,7 @@ version = '1.0-SNAPSHOT'
 ext {
     assertjVersion = '3.26.3'
     lombokVersion = '1.18.42'
+    resilience4jVersion = '2.3.0'
 
     junitVersion = '5.11.0'
     jteVersion = '3.2.1'
@@ -23,6 +24,7 @@ ext {
     tomcatVersion = '11.0.18'
 
     springBootVersion = '4.0.2'
+    springCloudVersion = '2025.1.0'
 
     validationApiVersion = '3.1.1'
     hibernateValidatorVersion = '8.0.1.Final'
@@ -40,6 +42,7 @@ repositories {
 
 dependencies {
     // Tests
+    testImplementation("org.springframework.boot:spring-boot-webmvc-test:4.0.2")
     testImplementation platform("org.junit:junit-bom:${junitVersion}")
     testImplementation "org.junit.jupiter:junit-jupiter"
     testImplementation "org.assertj:assertj-core:${assertjVersion}"
@@ -73,6 +76,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-liquibase'
     implementation 'org.liquibase:liquibase-core'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    // Resilience4j
+    implementation "io.github.resilience4j:resilience4j-spring-boot3:${resilience4jVersion}"
+    implementation "io.github.resilience4j:resilience4j-feign:${resilience4jVersion}"
 
     // Lombok
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
@@ -86,6 +94,12 @@ dependencies {
     // H2 Database (только для тестов)
     runtimeOnly 'com.h2database:h2:2.3.232'
     testRuntimeOnly 'com.h2database:h2:2.3.232'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
 }
 
 jte {

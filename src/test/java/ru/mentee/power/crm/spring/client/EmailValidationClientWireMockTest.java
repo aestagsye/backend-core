@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import feign.FeignException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ class EmailValidationClientWireMockTest {
           .configureStaticDsl(true)
           .build();
 
-  @Autowired private EmailValidationClient emailValidationClient;
+  @Autowired private EmailValidationFeignClient emailValidationClient;
 
   @DynamicPropertySource
   static void configureProperties(DynamicPropertyRegistry registry) {
@@ -86,13 +87,9 @@ class EmailValidationClientWireMockTest {
         get(urlPathEqualTo("/api/validate/email"))
             .willReturn(serverError().withBody("Internal Server Error")));
 
-    // When/Then: клиент должен gracefully обработать ошибку
-    EmailValidationResponse response = emailValidationClient.validateEmail("some-email");
-
-    assertThat(response).isNotNull();
-    assertThat(response.email()).isEqualTo("some-email");
-    assertThat(response.valid()).isFalse();
-    assertThat(response.reason()).isEqualTo("Email validation service unavailable");
+    // When/Then: низкоуровневый Feign-клиент пробрасывает ошибку сервера
+    assertThatThrownBy(() -> emailValidationClient.validateEmail("some-email"))
+        .isInstanceOf(FeignException.InternalServerError.class);
   }
 
   @Test

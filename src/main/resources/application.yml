@@ -4,6 +4,17 @@ server:
 spring:
   application:
     name: m-crm
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 10000
+            logger-level: full
+          email-validation:
+            connect-timeout: 3000
+            read-timeout: 5000
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     enabled: true
@@ -30,8 +41,33 @@ email:
   validation:
     base-url: ${EMAIL_VALIDATION_URL:http://localhost:8089}
 
+resilience4j:
+  retry:
+    instances:
+      email-validation:
+        max-attempts: 3
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - feign.RetryableException
+        ignore-exceptions:
+          - feign.FeignException.BadRequest
+          - feign.FeignException.NotFound
+  circuitbreaker:
+    instances:
+      email-validation:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+
 logging:
   level:
+    feign: DEBUG
+    io.github.resilience4j: DEBUG
     org.springframework.web: DEBUG
     ru.mentee.power.crm: DEBUG
     gg.jte: DEBUG
