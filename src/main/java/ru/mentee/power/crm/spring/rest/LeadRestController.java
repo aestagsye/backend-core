@@ -15,45 +15,53 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.mentee.power.crm.domain.Company;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.dto.LeadFormDto;
+import ru.mentee.power.crm.dto.LeadResponse;
 import ru.mentee.power.crm.service.LeadService;
+import ru.mentee.power.crm.spring.mapper.LeadMapper;
 
 @RequestMapping("/api/leads")
 @RestController
 @RequiredArgsConstructor
 public class LeadRestController {
   private final LeadService leadService;
+  private final LeadMapper leadMapper;
 
   @GetMapping
-  public ResponseEntity<List<Lead>> getAllLeads() {
-    List<Lead> leads = leadService.findAll();
-    return ResponseEntity.ok(leads); // stub
+  public ResponseEntity<List<LeadResponse>> getAllLeads() {
+    List<LeadResponse> responses =
+        leadService.findAll().stream().map(leadMapper::toResponse).toList();
+    return ResponseEntity.ok(responses);
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<Lead> getLeadById(@PathVariable UUID id) {
+  public ResponseEntity<LeadResponse> getLeadById(@PathVariable UUID id) {
     return leadService
         .findById(id)
+        .map(leadMapper::toResponse)
         .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
   }
 
   @PostMapping
-  public ResponseEntity<Lead> createLead(@Valid @RequestBody LeadFormDto formDto) {
+  public ResponseEntity<LeadResponse> createLead(@Valid @RequestBody LeadFormDto formDto) {
+    Lead toCreate = leadMapper.toEntity(formDto);
     Lead created =
-        leadService.addLead(formDto.getEmail(), createCompany(formDto), formDto.getStatus());
+        leadService.addLead(toCreate.getEmail(), toCreate.getCompany(), toCreate.getStatus());
     URI location = URI.create("/api/leads/" + created.getId());
-    return ResponseEntity.created(location).body(created);
+    return ResponseEntity.created(location).body(leadMapper.toResponse(created));
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Lead> updateLead(
+  public ResponseEntity<LeadResponse> updateLead(
       @PathVariable UUID id, @Valid @RequestBody LeadFormDto formDto) {
-    Lead lead = new Lead(formDto.getEmail(), createCompany(formDto), formDto.getStatus());
-    Optional<Lead> updated = leadService.updateLead(id, lead);
-    return updated.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    Lead updatedLead = leadMapper.toEntity(formDto);
+    Optional<Lead> updated = leadService.updateLead(id, updatedLead);
+    return updated
+        .map(leadMapper::toResponse)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
   }
 
   @DeleteMapping("/{id}")
@@ -64,9 +72,5 @@ public class LeadRestController {
     } else {
       return ResponseEntity.notFound().build();
     }
-  }
-
-  private Company createCompany(LeadFormDto formDto) {
-    return new Company(formDto.getCompanyName(), formDto.getIndustry());
   }
 }

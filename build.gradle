@@ -15,6 +15,8 @@ version = '1.0-SNAPSHOT'
 ext {
     assertjVersion = '3.26.3'
     lombokVersion = '1.18.42'
+    mapstructVersion = '1.6.3'
+    lombokMapstructBindingVersion = '0.2.0'
     resilience4jVersion = '2.3.0'
 
     junitVersion = '5.11.0'
@@ -82,11 +84,19 @@ dependencies {
     implementation "io.github.resilience4j:resilience4j-spring-boot3:${resilience4jVersion}"
     implementation "io.github.resilience4j:resilience4j-feign:${resilience4jVersion}"
 
-    // Lombok
+    // Lombok (должен быть первым в annotationProcessor)
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    // lombok-mapstruct-binding (критически важно!)
+    implementation "org.projectlombok:lombok-mapstruct-binding:${lombokMapstructBindingVersion}"
+
+    // MapStruct (должен быть после Lombok в annotationProcessor)
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    testAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
     // PostgreSQL JDBC Driver (для dev и production)
     runtimeOnly 'org.postgresql:postgresql'
@@ -125,6 +135,13 @@ tasks.withType(Checkstyle) {
     exclude '**/*Jte*Generated*.java'
     exclude '**/*_jte*.java'
     exclude '**/gg/jte/generated/**'
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += [
+            '-Amapstruct.defaultComponentModel=spring',
+            '-Amapstruct.unmappedTargetPolicy=ERROR'
+    ]
 }
 
 // Настройка JaCoCo

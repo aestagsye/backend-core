@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -21,8 +22,10 @@ import ru.mentee.power.crm.domain.Company;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
 import ru.mentee.power.crm.service.LeadService;
+import ru.mentee.power.crm.spring.mapper.LeadMapperImpl;
 
 @WebMvcTest(LeadRestController.class)
+@Import(LeadMapperImpl.class)
 class LeadRestControllerTest {
 
   @Autowired private MockMvc mockMvc;
@@ -41,7 +44,7 @@ class LeadRestControllerTest {
         .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$[0].email").value("john@example.com"))
         .andExpect(jsonPath("$[0].status").value("NEW"))
-        .andExpect(jsonPath("$[0].company.name").value("Acme"));
+        .andExpect(jsonPath("$[0].companyName").value("Acme"));
   }
 
   @Test
