@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
-@ControllerAdvice
+@ControllerAdvice(basePackages = "ru.mentee.power.crm.spring.controller")
 public class GlobalExceptionHandler {
 
   @ExceptionHandler(IllegalLeadStateException.class)
