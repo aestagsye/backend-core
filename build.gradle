@@ -247,7 +247,7 @@ bootRun {
 
 openApiGenerate {
     generatorName = "spring"
-    inputSpec = "file:///D:/IdeaProjects/backend-core/src/main/resources/api/api-spec.yaml"
+    inputSpec = file("${project.projectDir}/src/main/resources/api/api-spec.yaml").toURI().toURL().toString()
     outputDir = "${buildDir}/generated"
     apiPackage = "ru.mentee.power.crm.spring.rest.generated"
     modelPackage = "ru.mentee.power.crm.spring.dto.generated"
