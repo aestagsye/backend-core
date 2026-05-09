@@ -1,67 +1,54 @@
 package ru.mentee.power.crm.spring.rest;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.dto.LeadFormDto;
 import ru.mentee.power.crm.dto.LeadResponse;
 import ru.mentee.power.crm.service.LeadService;
 import ru.mentee.power.crm.spring.mapper.LeadMapper;
+import ru.mentee.power.crm.spring.rest.generated.LeadManagementApi;
 
-@RequestMapping("/api/leads")
 @RestController
 @RequiredArgsConstructor
-@Validated
-public class LeadRestController {
+public class LeadRestController implements LeadManagementApi {
+
   private final LeadService leadService;
   private final LeadMapper leadMapper;
 
-  @GetMapping
-  public ResponseEntity<List<LeadResponse>> getAllLeads() {
+  @Override
+  public ResponseEntity<List<LeadResponse>> getLeads() {
     List<LeadResponse> responses =
         leadService.findAll().stream().map(leadMapper::toResponse).toList();
     return ResponseEntity.ok(responses);
   }
 
-  @GetMapping("/{id}")
-  public ResponseEntity<LeadResponse> getLeadById(
-      @PathVariable @NotNull(message = "ID лида обязателен") UUID id) {
-    LeadResponse response = leadService.getLeadById(id);
-    return ResponseEntity.ok(response);
-  }
-
-  @PostMapping
-  public ResponseEntity<LeadResponse> createLead(@Valid @RequestBody LeadFormDto formDto) {
-    Lead toCreate = leadMapper.toEntity(formDto);
-    Lead created =
-        leadService.addLead(toCreate.getEmail(), toCreate.getCompany(), toCreate.getStatus());
+  @Override
+  public ResponseEntity<LeadResponse> createLead(@Valid LeadFormDto dto) {
+    var lead = leadMapper.toEntity(dto);
+    var created = leadService.addLead(lead.getEmail(), lead.getCompany(), lead.getStatus());
     URI location = URI.create("/api/leads/" + created.getId());
     return ResponseEntity.created(location).body(leadMapper.toResponse(created));
   }
 
-  @PutMapping("/{id}")
-  public ResponseEntity<LeadResponse> updateLead(
-      @PathVariable UUID id, @Valid @RequestBody LeadFormDto formDto) {
-    LeadResponse response = leadService.updateLeadRest(id, formDto);
+  @Override
+  public ResponseEntity<LeadResponse> getLeadById(UUID id) {
+    LeadResponse response = leadService.getLeadById(id);
     return ResponseEntity.ok(response);
   }
 
-  @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteLead(@PathVariable UUID id) {
+  @Override
+  public ResponseEntity<LeadResponse> updateLead(UUID id, @Valid LeadFormDto dto) {
+    LeadResponse response = leadService.updateLeadRest(id, dto);
+    return ResponseEntity.ok(response);
+  }
+
+  @Override
+  public ResponseEntity<Void> deleteLead(UUID id) {
     leadService.deleteLeadRest(id);
     return ResponseEntity.noContent().build();
   }
