@@ -52,4 +52,25 @@ class LeadMapperTest {
     assertThat(response.status()).isEqualTo(LeadStatus.NEW);
     assertThat(response.email()).isEqualTo("s@s.com");
   }
+
+  @Test
+  void shouldUpdateEntityFromDto() {
+    // given
+    Lead existingLead =
+        new Lead("old@email.com", new Company("Old", "OldInd"), LeadStatus.CONTACTED);
+    LeadFormDto dto = new LeadFormDto();
+    dto.setEmail("new@email.com");
+    dto.setCompanyName("NewCo");
+    dto.setIndustry("Tech");
+    dto.setStatus(LeadStatus.QUALIFIED);
+
+    // when
+    leadMapper.updateEntity(dto, existingLead); // вызов сгенерированной реализации
+
+    // then
+    assertThat(existingLead.getEmail()).isEqualTo("new@email.com");
+    assertThat(existingLead.getCompany().getName()).isEqualTo("NewCo");
+    assertThat(existingLead.getCompany().getIndustry()).isEqualTo("Tech");
+    assertThat(existingLead.getStatus()).isEqualTo(LeadStatus.QUALIFIED);
+  }
 }

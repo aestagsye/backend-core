@@ -23,6 +23,8 @@ import ru.mentee.power.crm.domain.CreateDealRequest;
 import ru.mentee.power.crm.domain.Deal;
 import ru.mentee.power.crm.domain.Lead;
 import ru.mentee.power.crm.domain.LeadStatus;
+import ru.mentee.power.crm.dto.LeadFormDto;
+import ru.mentee.power.crm.dto.LeadResponse;
 import ru.mentee.power.crm.exception.IllegalLeadStateException;
 import ru.mentee.power.crm.repository.CompanyRepository;
 import ru.mentee.power.crm.repository.DealRepository;
@@ -30,6 +32,8 @@ import ru.mentee.power.crm.repository.LeadRepository;
 import ru.mentee.power.crm.repository.LeadSpecifications;
 import ru.mentee.power.crm.spring.client.EmailValidationFeignClient;
 import ru.mentee.power.crm.spring.client.EmailValidationResponse;
+import ru.mentee.power.crm.spring.mapper.LeadMapper;
+import ru.mentee.power.crm.spring.restexception.EntityNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +44,8 @@ public class LeadService {
   private final DealRepository dealRepository;
   private final CompanyRepository companyRepository;
   private final EmailValidationFeignClient emailValidationClient;
+  private final LeadMapper leadMapper;
+  private final CompanyService companyService;
 
   @PostConstruct
   void init() {
@@ -155,16 +161,10 @@ public class LeadService {
         .map(
             existing -> {
               existing.setEmail(updatedLead.getEmail());
-              existing.setCompany(resolveCompany(updatedLead.getCompany()));
+              existing.setCompany(companyService.resolveCompany(updatedLead.getCompany()));
               existing.setStatus(updatedLead.getStatus());
               return leadRepository.save(existing);
             });
-  }
-
-  private Company resolveCompany(Company company) {
-    return companyRepository
-        .findByName(company.getName())
-        .orElseGet(() -> companyRepository.save(company));
   }
 
   @Transactional
@@ -240,17 +240,43 @@ public class LeadService {
     return leadRepository.findAll(spec);
   }
 
-  // Fallback метод — вызывается после исчерпания retry попыток
-  public Lead createLeadFallback(Lead lead, Exception ex) {
+  public Lead createLeadFallback(String email, Company company, LeadStatus status, Exception ex) {
     log.warn(
-        "Email validation service unavailable after retries. "
-            + "Creating lead without validation. Error: {}",
-        ex.getMessage());
-
-    // Graceful degradation: создаём лида без валидации
-    // В production можно: 1) пометить для последующей проверки
-    //                     2) отправить в очередь на валидацию
-    //                     3) отклонить запрос (throw new ServiceUnavailableException)
+        "Email validation failed, creating lead without validation. Error: {}", ex.getMessage());
+    Company resolvedCompany =
+        companyRepository
+            .findByName(company.getName())
+            .orElseGet(() -> companyRepository.save(company));
+    Lead lead = new Lead(email, resolvedCompany, status);
     return leadRepository.save(lead);
+  }
+
+  public LeadResponse getLeadById(UUID id) {
+    Lead lead =
+        leadRepository
+            .findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Lead", id.toString()));
+
+    return leadMapper.toResponse(lead);
+  }
+
+  @Transactional
+  public LeadResponse updateLeadRest(UUID id, LeadFormDto dto) {
+    Lead lead =
+        leadRepository
+            .findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Lead", id.toString()));
+    leadMapper.updateEntity(dto, lead);
+    companyService.resolveCompany(lead.getCompany()); // если нужно
+    leadRepository.save(lead);
+    return leadMapper.toResponse(lead);
+  }
+
+  @Transactional
+  public void deleteLeadRest(UUID id) {
+    if (!leadRepository.existsById(id)) {
+      throw new EntityNotFoundException("Lead", id.toString());
+    }
+    leadRepository.deleteById(id);
   }
 }
