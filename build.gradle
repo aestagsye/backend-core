@@ -7,6 +7,7 @@ plugins {
     id 'org.springframework.boot' version "4.0.2"
     id 'io.spring.dependency-management' version '1.1.7'
     id 'com.diffplug.spotless' version '8.0.0'
+    id 'org.openapi.generator' version '7.15.0'
 }
 
 group = 'ru.mentee.power'
@@ -30,6 +31,10 @@ ext {
 
     validationApiVersion = '3.1.1'
     hibernateValidatorVersion = '8.0.1.Final'
+
+    // OpenAPI / Documentation
+    openApiGeneratorVersion = '7.15.0'
+    springdocVersion = '3.0.1'
 }
 
 java {
@@ -84,6 +89,11 @@ dependencies {
     implementation "io.github.resilience4j:resilience4j-spring-boot3:${resilience4jVersion}"
     implementation "io.github.resilience4j:resilience4j-feign:${resilience4jVersion}"
 
+    // OpenAPI / Swagger UI
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
+    // JsonNullable support for OpenAPI-generated models
+    implementation "org.openapitools:jackson-databind-nullable:0.2.3"
+
     // Lombok (должен быть первым в annotationProcessor)
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
@@ -135,6 +145,9 @@ tasks.withType(Checkstyle) {
     exclude '**/*Jte*Generated*.java'
     exclude '**/*_jte*.java'
     exclude '**/gg/jte/generated/**'
+    exclude 'build/**'
+    exclude '**/spring/dto/generated/**'
+    exclude '**/spring/rest/generated/**'
 }
 
 tasks.withType(JavaCompile) {
@@ -172,11 +185,10 @@ jacocoTestReport {
                     '**/*_jte*',
                     '**/jte/**',
                     'gg/jte/generated/**',
-                    '**/service/LeadServiceLegacy.class',
-                    '**/repository/InMemoryLeadRepository.class',
-                    '**/repository/InMemoryDealRepository.class',
                     '**/Main.class',
-                    '**/service/LeadProcessor.class'
+                    'build/**',
+                    '**/spring/dto/generated/**',
+                    '**/spring/rest/generated/**'
 
             ])
         }))
@@ -200,11 +212,10 @@ jacocoTestCoverageVerification {
                     '**/*_jte*',
                     '**/jte/**',
                     'gg/jte/generated/**',
-                    '**/service/LeadServiceLegacy.class',
-                    '**/repository/InMemoryLeadRepository.class',
-                    '**/repository/InMemoryDealRepository.class',
                     '**/Main.class',
-                    '**/service/LeadProcessor.class'
+                    'build/**',
+                    '**/spring/dto/generated/**',
+                    '**/spring/rest/generated/**'
             ])
         }))
     }
@@ -212,8 +223,8 @@ jacocoTestCoverageVerification {
 
 spotless {
     java {
-        target 'src/**/*.java'    // <-- все .java файлы внутри src и поддиректорий
-        targetExclude 'build/**'  // исключаем сгенерированное/собранное
+        target 'src/**/*.java'
+        targetExclude 'build/**'
         googleJavaFormat('1.30.0')
         removeUnusedImports()
         trimTrailingWhitespace()
@@ -233,3 +244,45 @@ test {
 bootRun {
     mainClass = 'ru.mentee.power.crm.Application'
 }
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = file("${project.projectDir}/src/main/resources/api/api-spec.yaml").toURI().toURL().toString()
+    outputDir = "${buildDir}/generated"
+    apiPackage = "ru.mentee.power.crm.spring.rest.generated"
+    modelPackage = "ru.mentee.power.crm.spring.dto.generated"
+
+    importMappings = [
+            LeadFormDto  : 'ru.mentee.power.crm.dto.LeadFormDto',
+            LeadResponse : 'ru.mentee.power.crm.dto.LeadResponse',
+            ErrorResponse: 'ru.mentee.power.crm.spring.restexception.ErrorResponse'
+    ]
+
+    typeMappings = [
+            "string+Enum": "ru.mentee.power.crm.domain.LeadStatus"
+    ]
+
+    configOptions = [
+            interfaceOnly        : "true",
+            useTags              : "true",
+            dateLibrary          : "java8",
+            useSpringBoot3       : "true",
+            documentationProvider: "none",
+            generateModels       : "false"
+    ]
+    validateSpec = false
+}
+sourceSets {
+    main {
+        java {
+            srcDir "${buildDir}/generated/src/main/java"
+        }
+    }
+    test {
+        java {
+            srcDir "${buildDir}/generated/src/main/java"
+        }
+    }
+}
+
+compileJava.dependsOn tasks.openApiGenerate
