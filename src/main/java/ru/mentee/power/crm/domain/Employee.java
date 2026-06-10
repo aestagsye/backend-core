@@ -1,9 +1,13 @@
 package ru.mentee.power.crm.domain;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.util.UUID;
-
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,14 +18,19 @@ import lombok.Setter;
 public class Employee {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @Column
+  @Column(nullable = false)
   private String name;
 
-  @Column
+  @Column(nullable = false)
   private BigDecimal salary;
 
+  protected Employee() {}
 
+  public Employee(String name, BigDecimal salary) {
+    this.name = name;
+    this.salary = salary;
+  }
 }

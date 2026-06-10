@@ -3,6 +3,6 @@
 
 CREATE TABLE employees (
                        id UUID PRIMARY KEY NOT NULL,
-                       name VARCHAR(255) NOT NULL UNIQUE,
+                       name VARCHAR(255) NOT NULL,
                        salary DECIMAL(15, 2) NOT NULL
 );

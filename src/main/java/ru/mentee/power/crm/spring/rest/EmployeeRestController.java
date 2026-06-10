@@ -1,33 +1,24 @@
 package ru.mentee.power.crm.spring.rest;
 
-/*
-Реализовать 4 REST метода для управления сотрудниками.
-
-У нас должна быть возможность
-добавить сотрудника, DONE
-изменить зарплату сотруднику,
- получить всех сотрудников, done
- а так же удалить сотрудника. DONE
-
-БД - H2
-Так же необходимо добавить скрипты базы данных для создания таблицы сотрудников:
-
-id, name, salary
-
-Для помощи в реализации можно использовать любые интернет ресурсы. Для тестирования REST API можно использовать postman. UI не обязателен
- */
-
-import java.math.BigDecimal;
-import java.net.URI;
-import java.util.List;
-import java.util.UUID;
-
 import jakarta.validation.Valid;
+import java.net.URI;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.mentee.power.crm.domain.Employee;
+import ru.mentee.power.crm.dto.CreateEmployeeRequest;
 import ru.mentee.power.crm.dto.EmployeeResponse;
+import ru.mentee.power.crm.dto.UpdateSalaryRequest;
 import ru.mentee.power.crm.service.EmployeeService;
 import ru.mentee.power.crm.spring.mapper.EmployeeMapper;
 
@@ -39,33 +30,29 @@ public class EmployeeRestController {
   private final EmployeeMapper employeeMapper;
 
   @GetMapping
-  public ResponseEntity<List<EmployeeResponse>> getEmployees() {
-    List<EmployeeResponse> employees = employeeService.findAll()
-            .stream()
-            .map(employeeMapper::toResponse).toList();
+  public ResponseEntity<Page<EmployeeResponse>> getEmployees(Pageable pageable) {
+    Page<EmployeeResponse> employees = employeeService.findAll(pageable);
     return ResponseEntity.ok(employees);
   }
 
   @PostMapping
-  public ResponseEntity<EmployeeResponse> addEmployee(@Valid Employee employee) {
-    Employee created = employeeService.addEmployee(employee);
+  public ResponseEntity<EmployeeResponse> addEmployee(
+      @Valid @RequestBody CreateEmployeeRequest request) {
+    Employee created = employeeService.addEmployee(request);
     URI location = URI.create("/api/employees/" + created.getId());
     return ResponseEntity.created(location).body(employeeMapper.toResponse(created));
   }
 
   @PatchMapping("/{id}")
   public ResponseEntity<EmployeeResponse> updateSalary(
-          @Valid BigDecimal salary, @PathVariable UUID id
-  ) {
-    employeeService.updateSalary(salary, id);
-    return ResponseEntity.noContent().build();
+      @Valid @RequestBody UpdateSalaryRequest request, @PathVariable UUID id) {
+    Employee patched = employeeService.updateSalary(request, id);
+    return ResponseEntity.ok(employeeMapper.toResponse(patched));
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<EmployeeResponse> deleteEmployee(@PathVariable UUID id) {
+  public ResponseEntity<Void> deleteEmployee(@PathVariable UUID id) {
     employeeService.deleteEmployee(id);
     return ResponseEntity.noContent().build();
   }
-
-
 }
