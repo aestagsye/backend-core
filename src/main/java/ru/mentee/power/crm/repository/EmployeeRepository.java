@@ -4,5 +4,4 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.mentee.power.crm.domain.Employee;
 
-public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
-}
+public interface EmployeeRepository extends JpaRepository<Employee, UUID> {}
